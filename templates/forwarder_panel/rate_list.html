@@ -1,0 +1,197 @@
+{% extends 'forwarder_panel/base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    @import url('https://v1.fontapi.ir/css/Vazir');
+    .font-vazir { font-family: 'Vazir', sans-serif; }
+</style>
+
+<div class="p-8 bg-[#f4f7fc] min-h-screen rtl font-vazir" dir="rtl">
+    
+    <!-- هدر صفحه -->
+    <div class="flex justify-between items-center mb-6">
+        <div class="text-right">
+            <h1 class="text-2xl font-bold text-[#111827] mb-1">مدیریت نرخ ها</h1>
+            <p class="text-sm text-gray-500">مدیریت تمامی نرخ های ثبت شده</p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <!-- دکمه دانلود نمونه اکسل -->
+            <a href="{% url 'forwarder_panel:rate_download_template' %}" class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50 text-sm transition-colors">
+                دانلود نمونه اکسل
+            </a>
+
+            <!-- دکمه و فرم بارگذاری اکسل -->
+            <form action="{% url 'forwarder_panel:rate_bulk_upload' %}" method="POST" enctype="multipart/form-data" id="excel-upload-form" class="m-0">
+                {% csrf_token %}
+                <label class="cursor-pointer px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg shadow-sm hover:bg-gray-50 text-sm transition-colors flex items-center justify-center m-0">
+                    <span>بارگذاری اکسل</span>
+                    <!-- اینپوت مخفی فایل که پس از انتخاب فایل فرم را ارسال می‌کند -->
+                    <input type="file" name="excel_file" accept=".xlsx, .xls" class="hidden" onchange="document.getElementById('excel-upload-form').submit();">
+                </label>
+            </form>
+
+            <a href="{% url 'forwarder_panel:rate_create' %}" class="px-5 py-2 bg-[#12b4e6] text-white rounded-lg shadow-sm hover:bg-[#0da0cc] text-sm font-medium flex items-center gap-2 transition-colors">
+                + افزودن نرخ
+            </a>
+        </div>
+    </div>
+
+
+    <!-- بخش فیلترها -->
+    <div class="bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-4 mb-6">
+        <form id="filter-form" method="GET" class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">کشور</label>
+                <select name="country" class="w-full text-sm border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 border filter-select">
+                    <option value="">همه</option>
+                    {% for c in filter_countries %}
+                        <option value="{{ c.destination_country__id }}" {% if request.GET.country == c.destination_country__id|stringformat:"s" %}selected{% endif %}>{{ c.destination_country__name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">شهر</label>
+                <select name="city" class="w-full text-sm border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 border filter-select">
+                    <option value="">همه</option>
+                    {% for c in filter_cities %}
+                        <option value="{{ c.destination_city__id }}" {% if request.GET.city == c.destination_city__id|stringformat:"s" %}selected{% endif %}>{{ c.destination_city__name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">نوع حمل</label>
+                <select name="mode" class="w-full text-sm border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 border filter-select">
+                    <option value="">همه</option>
+                    {% for m in transport_modes %}
+                        <option value="{{ m.id }}" {% if request.GET.mode == m.id %}selected{% endif %}>{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">نوع کالا</label>
+                <select name="cargo" class="w-full text-sm border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 border filter-select">
+                    <option value="">همه</option>
+                    {% for c in filter_cargos %}
+                        <option value="{{ c.id }}" {% if request.GET.cargo == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">وضعیت</label>
+                <select name="status" class="w-full text-sm border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 border filter-select">
+                    <option value="">همه</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>فعال</option>
+                    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>غیرفعال</option>
+                </select>
+            </div>
+            <div>
+                <a href="{% url 'forwarder_panel:rate_list' %}" class="w-full inline-flex justify-center items-center py-2 px-4 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 text-sm font-medium transition-colors">
+                    حذف فیلترها
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- باکس سفید جدول -->
+    <div class="bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] py-6 px-4">
+        
+        <!-- کانتینر عملیات دسته‌جمعی (مخفی به صورت پیش‌فرض) -->
+        <!-- توجه: حتماً URL با نام rate_bulk_delete را در urls.py ایجاد کنید -->
+        <div id="bulk-action-container" class="hidden bg-red-50 border border-red-100 rounded-lg p-3 mb-4 flex justify-between items-center transition-all">
+            <span class="text-sm text-red-800 font-medium"><span id="selected-count">0</span> نرخ انتخاب شده است</span>
+            <button id="bulk-delete-btn" data-url="{% url 'forwarder_panel:rate_bulk_delete' %}" class="px-4 py-2 bg-red-500 text-white rounded-lg shadow-sm hover:bg-red-600 text-sm font-medium flex items-center gap-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                حذف انتخاب‌شده‌ها
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-center border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-100">
+                        <!-- هدر چک‌باکس انتخاب همه -->
+                        <th class="pb-4 px-4 text-gray-800 font-semibold text-sm w-12">
+                            <input type="checkbox" id="select-all-checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                        </th>
+                        <th class="pb-4 px-4 text-gray-800 font-semibold text-sm">کشور</th>
+                        <th class="pb-4 px-4 text-gray-800 font-semibold text-sm">شهر</th>
+                        <th class="pb-4 px-4 text-gray-800 font-semibold text-sm">نوع حمل</th>
+                        <th class="pb-4 px-4 text-gray-800 font-semibold text-sm">نوع کالا</th>
+                        <th class="pb-4 px-4 text-gray-800 font-semibold text-sm">وضعیت</th>
+                        <th class="pb-4 px-4 text-gray-800 font-semibold text-sm">جزئیات</th>
+                        <th class="pb-4 px-4 text-gray-800 font-semibold text-sm">حذف</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    
+                    {% for rate in rates %}
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                        <!-- چک‌باکس ردیف -->
+                        <td class="py-4 px-4">
+                            <input type="checkbox" class="rate-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" value="{{ rate.id }}">
+                        </td>
+                        <td class="py-4 px-4 text-gray-700 text-sm font-medium">{{ rate.destination_country.name|default:"-" }}</td>
+                        <td class="py-4 px-4 text-gray-700 text-sm font-medium">{{ rate.destination_city.name|default:"-" }}</td>
+                        <td class="py-4 px-4 text-gray-700 text-sm font-medium">{{ rate.get_transport_mode_display }}</td>
+                        
+                        <td class="py-4 px-4 text-gray-700 text-sm font-medium">
+                            {% for cargo in rate.cargo_types.all %}
+                                <span class="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs m-0.5">{{ cargo.name }}</span>
+                            {% empty %}
+                                عمومی
+                            {% endfor %}
+                        </td>
+
+                        <td class="py-4 px-4">
+                            <div class="flex justify-center items-center">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer toggle-rate-status" data-url="{% url 'forwarder_panel:toggle_rate_status' rate.id %}" {% if rate.is_active %}checked{% endif %}>
+                                    <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:-translate-x-[100%] after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#20c997]"></div>
+                                </label>
+                            </div>
+                        </td>
+
+                        <td class="py-4 px-4">
+                            <div class="flex justify-center items-center">
+                                <a href="{% url 'forwarder_panel:rate_detail' rate.id %}" class="text-blue-500 hover:text-blue-700 mx-2 transition-colors" title="مشاهده و ویرایش">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </td>
+
+                        <td class="py-4 px-4">
+                            <div class="flex justify-center items-center">
+                                <button type="button" class="delete-rate-btn text-red-500 hover:text-red-700 mx-2 transition-colors" data-url="{% url 'forwarder_panel:delete_rate' rate.id %}" title="حذف نرخ">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-10 text-center text-gray-500 text-sm">
+                            داده‌ای برای نمایش وجود ندارد.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- فراخوانی فایل جاوااسکریپت خارجی -->
+<script src="{% static 'js/rate_list_script.js' %}"></script>
+{% endblock %}

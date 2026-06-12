@@ -1,0 +1,137 @@
+{% extends 'forwarder_panel/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'forwarder_panel/css/dashboard.css' %}">
+{% endblock %} 
+
+{% block content %}
+<div class="dashboard-container p-6 sm:p-8">
+    
+    <!-- هدر -->
+    <div class="text-right mb-8">
+        <h1 class="text-2xl font-black text-slate-800 mb-1">داشبورد</h1>
+        <p class="text-sm text-slate-500 font-medium">اطلاعات سامانه در ۷ روز گذشته</p>
+    </div>
+
+    <!-- 4 کارت آماری بالا (ردیف اول) -->
+    <div class="stats-grid">
+        
+        <!-- کارت 1: سفارشات ثبت شده -->
+        <div class="stat-card">
+            <div class="stat-card-inner">
+                <div class="stat-info">
+                    <span class="stat-title">سفارشات ثبت شده</span>
+                    <h3 class="stat-value">{{ total_orders_count|default:"0" }}</h3>
+                </div>
+                <div class="icon-box icon-blue">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت 2: مبلغ کل سفارشات -->
+        <div class="stat-card">
+            <div class="stat-card-inner">
+                <div class="stat-info">
+                    <span class="stat-title">مبلغ کل سفارشات</span>
+                    <h3 class="stat-value format-large-number" data-value="{{ total_sales|default:'0' }}">{{ total_sales|intcomma|default:"0" }}</h3>
+                </div>
+                <div class="icon-box icon-green">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت 3: در انتظار پرداخت -->
+        <div class="stat-card">
+            <div class="stat-card-inner">
+                <div class="stat-info">
+                    <span class="stat-title">در انتظار پرداخت</span>
+                    <h3 class="stat-value">21</h3> 
+                </div>
+                <div class="icon-box icon-orange">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت 4: مقصدهای فعال -->
+        <div class="stat-card">
+            <div class="stat-card-inner">
+                <div class="stat-info">
+                    <span class="stat-title">مقصدهای فعال</span>
+                    <h3 class="stat-value">48</h3>
+                </div>
+                <div class="icon-box icon-purple">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- بخش خلاصه عملکرد هفته اخیر (طراحی جدید) -->
+    <div class="mt-8 text-right direction-rtl">
+        <h2 class="text-lg font-black text-slate-800 mb-4">خلاصه عملکرد هفته اخیر</h2>
+        
+        <div class="summary-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+            
+            <!-- باکس 1: میانگین مبلغ هر سفارش -->
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <div class="icon-box" style="background: #fef08a; color: #ca8a04;">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="summary-card-title">میانگین هر سفارش</h3>
+                </div>
+                <p class="summary-card-value">{{ avg_order_amount|default:"119,000,000" }}</p>
+                <p class="summary-card-desc">ریال در هفته اخیر</p>
+            </div>
+
+            <!-- باکس 2: بیشترین مقصد ثبت شده -->
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <div class="icon-box" style="background: #dcfce7; color: #16a34a;">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="summary-card-title">بیشترین مقصد</h3>
+                </div>
+                <p class="summary-card-value">{{ top_destination.destination_port__city__name|default:"آلمان - هامبورگ" }}</p>
+                <p class="summary-card-desc">پرترددترین در ۷ روز گذشته</p>
+            </div>
+
+            <!-- باکس 3: محبوب ترین روش حمل -->
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <div class="icon-box" style="background: #e0e7ff; color: #4f46e5;">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="summary-card-title">محبوب‌ترین روش حمل</h3>
+                </div>
+                <p class="summary-card-value">{{ top_transport_mode.display_name|default:"هوایی" }}</p>
+                <p class="summary-card-desc">بیشترین درخواست ثبت شده</p>
+            </div>
+
+            <!-- باکس 4: تعداد نرخ‌های فعال -->
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <div class="icon-box" style="background: #ffedd5; color: #ea580c;">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h3 class="summary-card-title">نرخ‌های فعال (کریر)</h3>
+                </div>
+                <p class="summary-card-value">{{ total_active_rates|default:"12" }}</p>
+                <p class="summary-card-desc">نرخ ثبت شده در سیستم</p>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'forwarder_panel/js/dashboard.js' %}"></script>
+{% endblock %}

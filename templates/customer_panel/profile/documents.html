@@ -1,0 +1,80 @@
+{% extends 'customer_panel/profile/profile_base.html' %}
+
+{% block profile_content %}
+
+<div class="content-card">
+
+    <div class="content-header">
+
+        <h2>
+            مدارک هویتی
+        </h2>
+
+        <a href="{% url 'customer:upload_document' %}"
+           class="btn-primary">
+
+            بارگذاری مدرک جدید
+
+        </a>
+
+    </div>
+
+    {% for doc in documents %}
+
+        <div class="document-row">
+
+            <div>
+
+                <strong>
+                    {{ doc.get_doc_type_display }}
+                </strong>
+
+                <br>
+
+                <small>
+                    {{ doc.created_at|date:"Y/m/d" }}
+                </small>
+
+            </div>
+
+            <div>
+
+                {% if doc.status == "pending" %}
+                    <span class="status-badge status-pending">
+                        در انتظار بررسی
+                    </span>
+
+                {% elif doc.status == "approved" %}
+                    <span class="status-badge status-approved">
+                        تایید شده
+                    </span>
+
+                {% elif doc.status == "rejected" %}
+                    <span class="status-badge status-rejected">
+                        رد شده
+                    </span>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        <div class="empty-state">
+
+            <h3>
+                هنوز مدرکی بارگذاری نشده است
+            </h3>
+
+            <p>
+                برای تکمیل احراز هویت مدارک خود را بارگذاری کنید.
+            </p>
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

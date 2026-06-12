@@ -1,0 +1,191 @@
+{% extends 'forwarder_panel/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<!-- استایل اختصاصی نرخ‌گذاری -->
+<link rel="stylesheet" href="{% static 'css/add_rate_style.css' %}">
+<!-- استایل‌های Persian Datepicker -->
+<link rel="stylesheet" href="https://unpkg.com/persian-datepicker/dist/css/persian-datepicker.min.css">
+{% endblock %}
+
+{% block content %}
+{% if form.errors or formset.errors %}
+    <div style="color: red; border: 1px solid red; padding: 10px; margin-bottom: 20px; background-color: #fee; border-radius: 8px;">
+        {% if form.errors %}
+            <strong>خطاهای فرم اصلی:</strong> {{ form.errors }} <br>
+        {% endif %}
+        {% if formset.errors %}
+            <strong>خطاهای محدوده‌های نرخ‌گذاری:</strong> {{ formset.errors }}
+        {% endif %}
+        {% if form.non_field_errors %}
+            <strong>خطاهای کلی:</strong> {{ form.non_field_errors }}
+        {% endif %}
+    </div>
+{% endif %}
+
+<form method="post" id="rate-form">
+    {% csrf_token %}
+    
+    <!-- هدر: عنوان و دکمه‌های عملیاتی -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">جزئیات و ویرایش نرخ</h2>
+            <a href="{% url 'forwarder_panel:rate_list' %}" class="text-muted text-decoration-none" style="font-size: 0.9rem;">&rarr; بازگشت به لیست</a>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" id="deleteBtn" data-url="{% url 'forwarder_panel:delete_rate' object.id %}" class="btn btn-outline-danger px-4">حذف نرخ</button>
+            <button type="submit" class="btn btn-info text-white px-4">ذخیره تغییرات</button>
+        </div>
+    </div>
+
+    <!-- فرم اطلاعات مسیر و کالا -->
+    <div class="card card-custom p-4 mb-4 shadow-sm border-0">
+        <h5 class="fw-bold mb-4">اطلاعات مسیر و کالا</h5>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label">استان مبدا</label>
+                {{ form.origin_province }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">شهر مبدا</label>
+                {{ form.origin_city }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">تاریخ اعتبار نرخ</label>
+                <!-- جایگاه خطای تاریخ -->
+                <div id="date-error" class="text-danger small d-none mb-1"></div>
+                {{ form.valid_until }}
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">کشور مقصد</label>
+                {{ form.destination_country }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">شهر مقصد</label>
+                {{ form.destination_city }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">روش حمل</label>
+                {{ form.transport_mode }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">پورت/فرودگاه/گمرک مقصد</label>
+                {{ form.destination_port }}
+            </div>
+        </div>
+
+        <!-- بخش نوع کالا (وابسته به روش حمل) -->
+        <div class="row g-3 mt-2">
+            <div class="col-md-12">
+                <label class="form-label">نوع کالا <span class="text-danger">*</span></label>
+                <!-- کانتینر برای لود داینامیک چک‌باکس‌ها -->
+                <div id="cargo-types-container" class="border rounded p-2" style="min-height: 45px;">
+                    {% if form.instance.pk and form.instance.transport_mode %}
+                        <span class="text-muted small">در حال بارگذاری مجدد...</span>
+                    {% else %}
+                        <span class="text-muted small">ابتدا روش حمل را انتخاب کنید.</span>
+                    {% endif %}
+                </div>
+                {% if form.cargo_types.errors %}
+                    <div class="text-danger mt-1 small">{{ form.cargo_types.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- فرمست محدوده‌های نرخ‌گذاری -->
+    <div class="card card-custom p-4 shadow-sm border-0">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold">محدوده‌های نرخ‌گذاری</h5>
+            <button type="button" class="btn btn-info text-white btn-sm px-3" id="add-tier-btn">+ افزودن محدوده</button>
+        </div>
+
+        {{ formset.management_form }}
+        
+        <div id="tiers-container">
+            {% for tier_form in formset %}
+            <div class="row g-2 align-items-end tier-row mb-3 p-3 border rounded bg-light w-100 mx-0 shadow-sm">
+                <!-- جایگاه خطای محدوده‌های وزنی -->
+                <div class="tier-error text-danger small d-none w-100 mb-2"></div>
+                
+                <!-- فیلد مخفی ID -->
+                {{ tier_form.id }}
+                
+                <div class="col-md-2 unit-fields">
+                    <label class="form-label text-muted small">واحد قیمت‌گذاری</label>
+                    {{ tier_form.pricing_unit }}
+                </div>
+                
+                <div class="col-md-2 weight-fields">
+                    <label class="form-label text-muted small">از وزن (KG)</label>
+                    {{ tier_form.weight_from }}
+                </div>
+                <div class="col-md-2 weight-fields">
+                    <label class="form-label text-muted small">تا وزن (KG)</label>
+                    {{ tier_form.weight_to }}
+                </div>
+
+                <div class="col-md-2 container-fields init-hidden">
+                    <label class="form-label text-muted small">ابعاد کانتینر</label>
+                    {{ tier_form.container_size.label_tag }}
+                    {{ tier_form.container_size }}
+                </div>
+                <div class="col-md-2 container-fields init-hidden">
+                    <label class="form-label text-muted small">نوع کانتینر</label>
+                    {{ tier_form.container_type.label_tag }}
+                    {{ tier_form.container_type }}
+                </div>
+
+                <div class="col-md-5 position-relative price-fields">
+                    <label class="form-label text-muted small">مبلغ (ریال)</label>
+                    {{ tier_form.price }}
+                    <small class="toman-display text-primary position-absolute" style="font-size: 0.75rem; bottom: -20px; right: 15px;"></small>
+                </div>
+
+                <div class="col-md-1 d-flex align-items-center justify-content-center pb-2">
+                    <div class="d-none">{{ tier_form.DELETE }}</div>
+                    <span class="delete-tier trash-icon" title="حذف محدوده" style="cursor: pointer;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-trash3 text-danger" viewBox="0 0 16 16">
+                        <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.814 1-1.41 11.272a1 1 0 0 1-.992.875H4.885a1 1 0 0 1-.992-.875L2.484 3.5h11.032ZM5.5 6.5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0v-6Zm2 0a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0v-6Zm2 0a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0v-6Z"/>
+                        </svg>
+                    </span>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- انتقال دیتاهای کالاهای انتخاب شده (در صفحه ویرایش) به JS -->
+    {% if form.instance.pk %}
+        <script id="selected_cargo_data" type="application/json">
+            [
+                {% for cargo in form.instance.cargo_types.all %}
+                    {{ cargo.id }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            ]
+        </script>
+    {% endif %}
+
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+    <!-- تعریف متغیرهای سراسری برای استفاده در فایل جاوااسکریپت -->
+    <script>
+        const loadCargoTypesUrl = "{% url 'forwarder_panel:ajax_load_cargo_types' %}";
+        const rateListUrl = "{% url 'forwarder_panel:rate_list' %}";
+    </script>
+    
+    <!-- اضافه کردن پیش‌نیازها -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mahmoud-eskandari/NumToPersian/dist/num2persian-min.js"></script>
+    <script src="https://unpkg.com/persian-date/dist/persian-date.min.js"></script>
+    <script src="https://unpkg.com/persian-datepicker/dist/js/persian-datepicker.min.js"></script>
+
+    <!-- بارگذاری فایل جاوااسکریپت جدید -->
+    <script src="{% static 'js/rate_detail_script.js' %}"></script>
+{% endblock %}

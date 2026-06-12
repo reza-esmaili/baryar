@@ -1,0 +1,97 @@
+
+@font-face {
+    font-family: 'BYekan';
+    src: url('../fonts/BYekan.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'BYekan';
+    src: url('../fonts/BYekanBold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+body {
+    font-family: 'Vazir', sans-serif;
+    background-color: #f8fafc;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    height: 100vh;
+    background-color: #111827;
+    color: white;
+    padding-top: 30px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 260px;
+    z-index: 1000;
+}
+
+.sidebar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.sidebar a {
+    color: #9ca3af;
+    text-decoration: none;
+    display: block;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: 8px 15px;
+    transition: all 0.3s;
+}
+
+.sidebar a:hover, .sidebar a.active {
+    background-color: #0ea5e9;
+    color: white;
+}
+
+.sidebar a i {
+    width: 25px;
+}
+
+/* Main Content Area */
+.main-content {
+    margin-right: 260px;
+    padding: 30px;
+}
+
+/* Custom Cards */
+.card-custom {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    background-color: white;
+}
+
+.stat-card {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.btn-primary-custom {
+    background-color: #0ea5e9;
+    border-color: #0ea5e9;
+    color: white;
+    border-radius: 8px;
+    padding: 8px 20px;
+}
+.btn-primary-custom:hover { background-color: #0284c7; }

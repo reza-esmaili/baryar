@@ -1,0 +1,173 @@
+/* statics/forwarder_panel/css/dashboard.css */
+
+/* پس زمینه کلی صفحه برای تطابق با تصویر */
+.dashboard-container {
+    background-color: #f4f7fe;
+    min-height: 100vh;
+    font-family: 'BYekan', Tahoma, Arial, sans-serif;
+}
+
+/* کارت‌های آماری بالا */
+.stat-card {
+    background-color: #ffffff;
+    border-radius: 1.25rem; /* 20px */
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* باکس‌های آیکون */
+.icon-box {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-blue { background-color: #e6f0ff; color: #3b82f6; }
+.icon-green { background-color: #e6fcf5; color: #10b981; }
+.icon-orange { background-color: #fff3e0; color: #f97316; }
+.icon-purple { background-color: #f3e8ff; color: #a855f7; }
+
+/* کارت یکپارچه خلاصه عملکرد */
+.summary-card {
+    background-color: #ffffff;
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.summary-item h4 {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.summary-item p {
+    color: #0ea5e9; /* رنگ آبی فیروزه‌ای متن‌های پایین تصویر */
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+/* تنظیمات چیدمان گرید برای کارت‌های آماری */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr); /* در موبایل 1 ستون */
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    direction: rtl;
+}
+
+/* در تبلت 2 ستون */
+@media (min-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* در مانیتور 4 ستون */
+@media (min-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* اصلاح چیدمان داخل هر کارت برای راست‌چین بودن */
+.stat-card-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.stat-info {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-title {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #1e293b;
+    margin: 0;
+}
+/* تنظیمات چیدمان گرید برای خلاصه عملکرد هفته اخیر */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr); /* در موبایل ۱ ستون */
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    direction: rtl;
+}
+
+/* در تبلت و مانیتور ۳ ستون کنار هم */
+@media (min-width: 768px) {
+    .summary-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* استایل ظاهری باکس‌های خلاصه عملکرد */
+.summary-card {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* راست‌چین */
+    text-align: right;
+}
+
+.summary-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.summary-card-header .icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.summary-card-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #334155;
+    margin: 0;
+}
+
+.summary-card-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.summary-card-desc {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+}
+

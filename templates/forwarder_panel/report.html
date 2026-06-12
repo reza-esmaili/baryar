@@ -1,0 +1,60 @@
+{% extends 'forwarder_panel/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<!-- استایل کتابخانه تقویم شمسی -->
+<link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+<!-- استایل اختصاصی گزارشات -->
+<link rel="stylesheet" href="{% static 'forwarder_panel/css/report.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <div class="glass-card">
+        <h3 class="mb-4 text-gray-800">گزارش مبلغ فروش</h3>
+        
+        <!-- بخش فیلترها (Grid) -->
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label for="startDate">از تاریخ:</label>
+                <input type="text" id="startDate" class="form-control p-date" placeholder="انتخاب کنید...">
+            </div>
+            
+            <div class="filter-group">
+                <label for="endDate">تا تاریخ:</label>
+                <input type="text" id="endDate" class="form-control p-date" placeholder="انتخاب کنید...">
+            </div>
+            
+            <div class="filter-group">
+                <label for="interval">بازه زمانی:</label>
+                <select id="interval" class="form-control">
+                    <option value="daily">روزانه</option>
+                    <option value="weekly">هفتگی</option>
+                    <option value="monthly">ماهانه</option>
+                    <option value="quarterly">سه ماهه</option>
+                    <option value="yearly">سالانه</option>
+                </select>
+            </div>
+            
+            <div class="filter-group button-group">
+                <button id="applyFilterBtn" class="btn btn-primary w-100">اعمال فیلتر</button>
+            </div>
+        </div>
+
+        <!-- کانتینر نمودار (آدرس URL بک‌اند را در data-url قرار می‌دهیم تا JS بتواند آن را بخواند) -->
+        <!-- نام 'get_sales_chart_data' باید با نام تعریف شده در urls.py شما یکی باشد -->
+        <div id="salesChart" data-url="{% url 'forwarder_panel:get_sales_chart_data' %}"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- جاوا اسکریپت کتابخانه‌ها -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<!-- جاوا اسکریپت اختصاصی گزارشات -->
+<script src="{% static 'forwarder_panel/js/report.js' %}"></script>
+{% endblock %}

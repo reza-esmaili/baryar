@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>پلتفرم حمل و نقل بین‌المللی</title>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'website/css/home.css' %}">
+</head>
+<body>
+
+<!-- ═══ HEADER (hidden until scroll) ═══ -->
+<header class="site-header" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">کارگو<span>پلاس</span></a>
+    <ul class="nav">
+      <li><a href="{% url 'core:home' %}">خانه</a></li>
+      <li><a href="{% url 'orders:create_request' %}">استعلام نرخ</a></li>
+      <li><a href="#">درباره ما</a></li>
+      <li><a href="#">تماس</a></li>
+    </ul>
+    <button class="header-cta">ورود / ثبت‌نام</button>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-grid">
+
+    <!-- تصویر (سمت راست) -->
+    <div class="hero-image">
+      <img src="{% static 'img/hero.png' %}" alt="حمل و نقل بین‌المللی">
+
+      <div class="hotspot hs-air">
+        <span class="hs-ico">✈️</span>
+        <div class="hs-txt"><b>حمل و نقل هوایی</b><small>سریع و مطمئن</small></div>
+      </div>
+
+      <div class="hotspot hs-sea">
+        <span class="hs-ico">🚢</span>
+        <div class="hs-txt"><b>حمل و نقل دریایی</b><small>اقتصادی و ایمن</small></div>
+      </div>
+
+      <div class="hotspot hs-land">
+        <span class="hs-ico">🚚</span>
+        <div class="hs-txt"><b>حمل و نقل زمینی</b><small>انعطاف‌پذیر و سریع</small></div>
+      </div>
+    </div>
+
+    <!-- محتوا (سمت چپ) -->
+    <div class="hero-content">
+      <span class="badge">⚡ استعلام سریع، مقایسه هوشمند، انتخاب بهتر</span>
+      <h1>استعلام قیمت <span class="hl">حمل و نقل</span><br>بین‌المللی در چند ثانیه</h1>
+      <p class="lead">با سامانه هوشمند ما، نرخ حمل بار دریایی، هوایی و زمینی را از معتبرترین شرکت‌های حمل و نقل بگیرید و بهترین گزینه را انتخاب کنید.</p>
+      <!-- بخش آمار/مزایا و کارت فرم استعلام همان قبلی -->
+      {% include "partials/search_card.html" %}
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section class="features-section">
+  <div class="container">
+    <div class="features-card">
+      <div class="feat"><div class="fico">🌐</div><h3>پوشش جهانی</h3><p>شبکه گسترده شرکت‌های حمل در سراسر جهان</p></div>
+      <div class="feat"><div class="fico">💲</div><h3>قیمت رقابتی</h3><p>مقایسه نرخ‌ها و انتخاب مناسب‌ترین گزینه</p></div>
+      <div class="feat"><div class="fico">🛡️</div><h3>امنیت و اطمینان</h3><p>حمل ایمن بار با بیمه کامل و ضمانت معتبر</p></div>
+      <div class="feat"><div class="fico">📍</div><h3>رهگیری آنلاین</h3><p>پیگیری لحظه‌ای وضعیت بار در همه مراحل</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section class="hiw-section">
+  <div class="container">
+    <div class="section-title">
+      <h2>چطور کار می‌کند؟</h2>
+      <p>در ۴ قدم ساده، بهترین نرخ حمل بار خود را بیابید</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">۱</div>
+        <h3>انتخاب مسیر</h3>
+        <p>مبدا و مقصد مورد نظر خود را وارد کنید</p>
+      </div>
+      <div class="step">
+        <div class="step-arrow">‹</div>
+        <div class="step-num">۲</div>
+        <h3>نوع حمل</h3>
+        <p>دریایی، هوایی یا زمینی را انتخاب کنید</p>
+      </div>
+      <div class="step">
+        <div class="step-arrow">‹</div>
+        <div class="step-num">۳</div>
+        <h3>مشخصات بار</h3>
+        <p>وزن، ابعاد و نوع کالا را وارد کنید</p>
+      </div>
+      <div class="step">
+        <div class="step-arrow">‹</div>
+        <div class="step-num">۴</div>
+        <h3>دریافت نرخ</h3>
+        <p>بهترین پیشنهادها را مقایسه و انتخاب کنید</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ STATS ═══ -->
+<section class="stats-section">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat"><h3>+۵۰۰</h3><p>شرکت حمل و نقل</p></div>
+      <div class="stat"><h3>+۱۲۰</h3><p>کشور مقصد</p></div>
+      <div class="stat"><h3>+۱۰K</h3><p>مشتری راضی</p></div>
+      <div class="stat"><h3>۹۸٪</h3><p>رضایت‌مندی</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-card">
+      <div>
+        <h2>آماده‌اید بهترین نرخ را پیدا کنید؟</h2>
+        <p>همین الان ثبت‌نام کنید و از تخفیف ۱۵٪ اولین استعلام بهره‌مند شوید.</p>
+      </div>
+      <div class="cta-btns">
+        <button class="btn-primary">شروع رایگان</button>
+        <button class="btn-outline">مشاوره رایگان</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo-f">کارگو<span>پلاس</span></div>
+        <p>پیشرو در ارائه خدمات استعلام و رزرو حمل و نقل بین‌المللی در ایران</p>
+        <div class="social">
+          <a href="#">📘</a><a href="#">📷</a><a href="#">💼</a><a href="#">🐦</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>خدمات</h4>
+        <ul>
+          <li><a href="#">حمل دریایی</a></li>
+          <li><a href="#">حمل هوایی</a></li>
+          <li><a href="#">حمل زمینی</a></li>
+          <li><a href="#">ترخیص گمرکی</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>شرکت</h4>
+        <ul>
+          <li><a href="#">درباره ما</a></li>
+          <li><a href="#">تیم ما</a></li>
+          <li><a href="#">کارراهه</a></li>
+          <li><a href="#">اخبار</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>پشتیبانی</h4>
+        <ul>
+          <li><a href="{% url 'core:home' %}">خانه</a></li>
+          <li><a href="{% url 'orders:create_request' %}">استعلام نرخ</a></li>
+          <li><a href="#">شرایط استفاده</a></li>
+          <li><a href="#">حریم خصوصی</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© ۱۴۰۵ کارگوپلاس — تمامی حقوق محفوظ است</span>
+      <div class="footer-badges">
+        <span class="badge-f">ای‌نماد</span>
+        <span class="badge-f">ساماندهی</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Header show on scroll
+  const header = document.getElementById('site-header');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('visible', window.scrollY > 80);
+  }, {passive: true});
+
+  // Tab switch
+  function setTab(btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('mode-input').value = btn.dataset.mode;
+  }
+
+  // Swap origin/destination
+  function swapFields() {
+    const o = document.querySelector('[name="origin"]');
+    const d = document.querySelector('[name="destination"]');
+    [o.value, d.value] = [d.value, o.value];
+  }
+</script>
+</body>
+</html>

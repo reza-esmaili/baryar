@@ -1,0 +1,80 @@
+{% extends 'forwarder_panel/base.html' %}
+{% load static %}
+{% load humanize %} 
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'forwarder_panel/css/order_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    @import url('https://v1.fontapi.ir/css/Vazir');
+    .font-vazir { font-family: 'Vazir', sans-serif; }
+</style>
+
+<div class="p-8 bg-[#f4f7fc] min-h-screen rtl font-vazir" dir="rtl">
+    <div class="mb-6 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-[#111827]">جزئیات سفارش #{{ order.id }}</h1>
+        <a href="{% url 'forwarder_panel:order_list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm transition-colors">بازگشت به لیست</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- اطلاعات مشتری و فرستنده -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">اطلاعات فرستنده</h3>
+            <div class="space-y-3 text-sm">
+                <p><span class="text-gray-500 w-32 inline-block">نام فرستنده:</span> <span class="font-medium">{{ order.sender_name|default:"-" }}</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">کد ملی:</span> <span class="font-medium">{{ order.sender_national_id|default:"-" }}</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">موبایل:</span> <span class="font-medium">{{ order.sender_phone|default:"-" }}</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">آدرس مبدا:</span> <span class="font-medium">{{ order.origin_city.name }} - {{ order.sender_address|default:"-" }}</span></p>
+            </div>
+        </div>
+
+        <!-- اطلاعات کالا و حمل -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">اطلاعات محموله و حمل</h3>
+            <div class="space-y-3 text-sm">
+                <p><span class="text-gray-500 w-32 inline-block">روش حمل:</span> <span class="font-medium">{{ order.get_transport_mode_display }}</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">پورت مقصد:</span> <span class="font-medium">{{ order.destination_port.name }}</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">نوع کالا:</span> <span class="font-medium">{{ order.cargo_type.name }}</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">وزن نهایی:</span> <span class="font-medium">{{ order.chargeable_weight|default:order.actual_weight }} کلیوگرم</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">هزینه محاسبه شده:</span> <span class="font-medium text-green-600 font-bold">{{ order.final_price|intcomma }} ریال</span></p>
+            </div>
+        </div>
+
+        <!-- مدیریت وضعیت -->
+        <div class="bg-white p-6 rounded-xl shadow-sm md:col-span-2">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">تغییر وضعیت سفارش</h3>
+            <form method="POST" class="space-y-4">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">وضعیت فعلی</label>
+                        <select name="status" class="w-full text-sm border-gray-300 rounded-lg shadow-sm py-2 px-3 border focus:ring-blue-500 focus:border-blue-500">
+                            {% for st_val, st_name in statuses %}
+                                {% if st_val != 'draft' %}
+                                    <option value="{{ st_val }}" {% if order.status == st_val %}selected{% endif %}>{{ st_name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">یادداشت برای تغییر وضعیت (اختیاری)</label>
+                        <input type="text" name="note" placeholder="علت رد یا توضیحات تایید..." class="w-full text-sm border-gray-300 rounded-lg shadow-sm py-2 px-3 border">
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 justify-end pt-4 border-t mt-4">
+                    <a href="{% url 'forwarder_panel:order_list' %}" class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">انصراف</a>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">ذخیره تغییرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'forwarder_panel/js/order_detail.js' %}"></script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+    <li>
+        <a href="{% url 'admin:rate_cargotype_import_excel' %}" class="addlink" style="background-color: #28a745; color: white;">
+            وارد کردن اکسل کالاها
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock %}

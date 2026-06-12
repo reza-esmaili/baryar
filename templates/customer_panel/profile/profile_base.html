@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="{% static 'customer_panel/css/user_profile.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="profile-layout">
+
+    <!-- Sidebar -->
+
+    <aside class="profile-sidebar">
+
+        <div class="sidebar-user">
+
+            <div class="sidebar-avatar">
+                {{ request.user.first_name|first }}
+            </div>
+
+            <h3>
+                {{ request.user.first_name }}
+                {{ request.user.last_name }}
+            </h3>
+
+            <span>
+                {{ request.user.mobile }}
+            </span>
+
+        </div>
+
+        <nav class="sidebar-menu">
+
+            <a href="{% url 'customer:profile' %}"
+               class="{% if request.resolver_match.url_name == 'profile_dashboard' %}active{% endif %}">
+                داشبورد
+            </a>
+
+            <a href="{% url 'customer:profile' %}"
+               class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                اطلاعات حساب
+            </a>
+
+            <a href="{% url 'customer:edit_profile' %}"
+               class="{% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}">
+                ویرایش اطلاعات
+            </a>
+
+            <a href="{% url 'customer:order_list' %}"
+               class="{% if request.resolver_match.url_name == 'order_list' %}active{% endif %}">
+                سفارشات من
+            </a>
+
+            <a href="{% url 'customer:documents' %}"
+               class="{% if request.resolver_match.url_name == 'documents' %}active{% endif %}">
+                مدارک هویتی
+            </a>
+
+        </nav>
+
+    </aside>
+
+    <!-- Content -->
+
+    <section class="profile-content">
+
+        {% block profile_content %}
+        {% endblock %}
+
+    </section>
+
+</div>
+
+{% endblock %}

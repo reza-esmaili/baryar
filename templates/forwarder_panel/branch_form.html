@@ -1,0 +1,130 @@
+{% extends 'forwarder_panel/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4" dir="rtl">
+    <div class="mb-4">
+        <h2 class="h4">
+            {% if branch %}ویرایش شعبه: {{ branch.name }}{% else %}افزودن شعبه جدید{% endif %}
+        </h2>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" action="">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    <!-- نام شعبه -->
+                    <div class="col-md-12 mb-2">
+                        <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        <div class="text-danger small">{{ form.name.errors }}</div>
+                    </div>
+
+                    <!-- اطلاعات نماینده -->
+                    <div class="col-md-4 mb-2">
+                        <label for="{{ form.representative_first_name.id_for_label }}" class="form-label fw-bold">{{ form.representative_first_name.label }}</label>
+                        {{ form.representative_first_name }}
+                        <div class="text-danger small">{{ form.representative_first_name.errors }}</div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label for="{{ form.representative_last_name.id_for_label }}" class="form-label fw-bold">{{ form.representative_last_name.label }}</label>
+                        {{ form.representative_last_name }}
+                        <div class="text-danger small">{{ form.representative_last_name.errors }}</div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <label for="{{ form.representative_mobile.id_for_label }}" class="form-label fw-bold">{{ form.representative_mobile.label }}</label>
+                        {{ form.representative_mobile }}
+                        <div class="text-danger small">{{ form.representative_mobile.errors }}</div>
+                    </div>
+
+                    <!-- استان و شهر -->
+                    <div class="col-md-6 mb-2">
+                        <label for="{{ form.province.id_for_label }}" class="form-label fw-bold">{{ form.province.label }}</label>
+                        {{ form.province }}
+                        <div class="text-danger small">{{ form.province.errors }}</div>
+                    </div>
+                    <div class="col-md-6 mb-2" id="city-container">
+                        <label for="{{ form.city.id_for_label }}" class="form-label fw-bold">{{ form.city.label }}</label>
+                        {{ form.city }}
+                        <div class="text-danger small">{{ form.city.errors }}</div>
+                    </div>
+
+                    <!-- آدرس کامل -->
+                    <div class="col-md-12 mb-2">
+                        <label for="{{ form.address.id_for_label }}" class="form-label fw-bold">{{ form.address.label }}</label>
+                        {{ form.address }}
+                        <div class="text-danger small">{{ form.address.errors }}</div>
+                    </div>
+
+                    <!-- وضعیت فعال -->
+                    <div class="col-md-12 mb-2">
+                        <div class="form-check form-switch">
+                            {{ form.is_active }}
+                            <label class="form-check-label fw-bold ms-2" for="{{ form.is_active.id_for_label }}">
+                                {{ form.is_active.label }}
+                            </label>
+                        </div>
+                        <div class="text-danger small">{{ form.is_active.errors }}</div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-success px-4">ذخیره اطلاعات</button>
+                    <a href="{% url 'forwarder_panel:branch_list' %}" class="btn btn-secondary px-4">انصراف</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const provinceSelect = document.getElementById('id_province');
+    const citySelect = document.getElementById('id_city');
+    const cityContainer = document.getElementById('city-container');
+    
+    if (!provinceSelect || !citySelect) return;
+
+    function toggleCityField() {
+        if (provinceSelect.value) {
+            cityContainer.style.display = 'block';
+        } else {
+            cityContainer.style.display = 'none';
+            citySelect.innerHTML = '<option value="">ابتدا استان را انتخاب کنید</option>';
+        }
+    }
+
+    toggleCityField();
+
+    provinceSelect.addEventListener('change', function() {
+        toggleCityField();
+        
+        const provinceId = this.value;
+        if (provinceId) {
+            citySelect.innerHTML = '<option value="">در حال بارگذاری...</option>';
+            
+            fetch(`{% url 'forwarder_panel:ajax_load_cities' %}?province_id=${provinceId}`)
+                .then(response => response.json())
+                .then(data => {
+                    citySelect.innerHTML = '<option value="" selected>انتخاب شهر...</option>';
+                    if (data.length === 0) {
+                        citySelect.innerHTML = '<option value="">شهری برای این استان یافت نشد</option>';
+                        return;
+                    }
+                    data.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.id;
+                        option.textContent = city.name;
+                        citySelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching cities:', error);
+                    citySelect.innerHTML = '<option value="">خطا در بارگذاری شهرها</option>';
+                });
+        }
+    });
+});
+</script>
+{% endblock %}

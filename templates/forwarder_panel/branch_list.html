@@ -1,0 +1,87 @@
+{% extends 'forwarder_panel/base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4">لیست شعب</h2>
+        <a href="{% url 'forwarder_panel:branch_create' %}" class="btn btn-primary">
+            + افزودن شعبه جدید
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>نام شعبه</th>
+                            <th>استان</th>
+                            <th>شهر</th>
+                            <th>وضعیت</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for branch in branches %}
+                        <tr>
+                            <td>{{ branch.name }}</td>
+                            <td>{{ branch.province }}</td>
+                            <td>{{ branch.city }}</td>
+                            <td>
+                                <!-- تاگل باتن برای تغییر وضعیت -->
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" 
+                                           id="switch-{{ branch.id }}" 
+                                           {% if branch.is_active %}checked{% endif %}
+                                           onchange="toggleBranchStatus({{ branch.id }}, this.checked)">
+                                </div>
+                            </td>
+                            <td>
+                                <a href="{% url 'forwarder_panel:branch_update' branch.id %}" class="btn btn-sm btn-outline-info">
+                                    مشاهده و ویرایش
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">هیچ شعبه‌ای یافت نشد.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleBranchStatus(branchId, isActive) {
+        const url = `/panel/branches/toggle-status/${branchId}/`; // آدرس را با urls.py خود تطبیق دهید
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ 'is_active': isActive })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert('خطا در تغییر وضعیت شعبه.');
+                // برگرداندن دکمه به حالت قبل در صورت خطا
+                document.getElementById(`switch-${branchId}`).checked = !isActive;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('خطای شبکه در ارتباط با سرور.');
+            document.getElementById(`switch-${branchId}`).checked = !isActive;
+        });
+    }
+</script>
+{% endblock %}

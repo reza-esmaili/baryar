@@ -1,0 +1,29 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <div class="form-row">
+                {{ form.as_p }}
+            </div>
+            <div class="help" style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-right: 4px solid #17a2b8;">
+                <p><strong>ساختار فایل اکسل باید شامل ۶ ستون به ترتیب زیر باشد:</strong></p>
+                <ol>
+                    <li><strong>ستون A:</strong> نام کشور</li>
+                    <li><strong>ستون B:</strong> کد کشور (حداکثر ۳ کاراکتر مانند IRN)</li>
+                    <li><strong>ستون C:</strong> شهر مقصد</li>
+                    <li><strong>ستون D:</strong> نوع پورت (دقیقاً یکی از این مقادیر: بندر، فرودگاه، گمرک زمینی، گمرک ریلی)</li>
+                    <li><strong>ستون E:</strong> نام پورت</li>
+                    <li><strong>ستون F:</strong> کد پورت (اختیاری)</li>
+                </ol>
+                <p>سطر اول نادیده گرفته می‌شود (به عنوان Header).</p>
+            </div>
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" value="آپلود و پردازش" class="default" name="_save">
+        </div>
+    </form>
+</div>
+{% endblock %}

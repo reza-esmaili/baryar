@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        پلتفرم حمل و نقل
+        {% endblock %}
+    </title>
+
+    <link rel="stylesheet"
+          href="{% static 'customer_panel/css/style.css' %}">
+
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css"
+          rel="stylesheet">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header class="navbar">
+    <div class="container nav-container">
+
+        <div class="logo">
+            <a href="{% url 'core:home' %}">
+               <img src="{% static 'img/logo.jpeg' %}" alt="سامانه جامع حمل ونقل">
+            </a>
+        </div>
+
+        <nav class="nav-menu">
+
+            <ul>
+
+                <li>
+                    <a href="{% url 'core:home' %}">
+                        خانه
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'orders:create_request' %}">
+                        ثبت سفارش
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        پیگیری بار
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        تعرفه‌ها
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        تماس با ما
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'customer:profile' %}"
+                       class="btn-primary">
+                        حساب کاربری
+                    </a>
+                </li>
+
+            </ul>
+
+        </nav>
+
+    </div>
+</header>
+
+<!-- =========================
+     MAIN
+========================= -->
+
+<main class="main-content">
+
+    <div class="container">
+
+        {% block content %}
+        {% endblock %}
+
+    </div>
+
+</main>
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer class="site-footer">
+
+    <div class="container">
+
+        <div class="footer-grid">
+
+            <!-- ستون اول -->
+
+            <div class="footer-column">
+
+                <h4>
+                    خدمات
+                </h4>
+
+                <ul>
+
+                    <li>
+                        <a href="#">
+                            حمل هوایی
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#">
+                            حمل دریایی
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#">
+                            حمل زمینی
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#">
+                            ترخیص کالا
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <!-- ستون دوم -->
+
+            <div class="footer-column">
+
+                <h4>
+                    دسترسی سریع
+                </h4>
+
+                <ul>
+
+                    <li>
+                        <a href="{% url 'core:home' %}">
+                            صفحه اصلی
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{% url 'orders:create_request' %}">
+                            ثبت سفارش
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#">
+                            پیگیری بار
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="#">
+                            قوانین و مقررات
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <!-- ستون سوم -->
+
+            <div class="footer-column">
+
+                <h4>
+                    ارتباط با ما
+                </h4>
+
+                <ul class="footer-contact">
+
+                    <li>
+                        تلفن:
+                        021-12345678
+                    </li>
+
+                    <li>
+                        موبایل:
+                        09123456789
+                    </li>
+
+                    <li>
+                        ایمیل:
+                        info@example.com
+                    </li>
+
+                    <li>
+                        تهران - ایران
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <!-- ستون چهارم -->
+
+            <div class="footer-column">
+
+                <h4>
+                    مجوزها
+                </h4>
+
+                <div class="licenses">
+
+                    <a href="#">
+                        <img src="{% static 'website/images/enamad.png' %}"
+                             alt="نماد اعتماد">
+                    </a>
+
+                    <a href="#">
+                        <img src="{% static 'website/images/kasbokar.png' %}"
+                             alt="مجوز کسب و کار">
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+
+            <p>
+                © ۱۴۰۵ تمامی حقوق این سامانه متعلق به پلتفرم حمل و نقل می‌باشد.
+            </p>
+
+        </div>
+
+    </div>
+
+</footer>
+
+<script src="{% static 'customer_panel/js/main.js' %}"></script>
+
+{% block extra_js %}
+{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,115 @@
+
+@font-face {
+    font-family: 'BYekan';
+    src: url('../fonts/BYekan.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'BYekan'; 
+    src: url('../fonts/BYekanBold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.auth-btn {
+    font-family: 'BYekan', Tahoma, Arial, sans-serif;
+}
+body {
+    font-family: 'BYekan', Tahoma, Arial, sans-serif;
+    background: #f8f9fa;
+    color: #333;
+}
+
+.panel-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ==================== Sidebar ==================== */
+.sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #2c3e50 0%, #1a2533 100%);
+    color: #ecf0f1;
+    padding: 1.5rem 1rem;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+.sidebar-brand {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.sidebar-brand h4 {
+    font-weight: 700;
+    font-size: 1.8rem;
+}
+
+.sidebar-brand span {
+    color: #3498db;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    color: #bdc3c7;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    transition: all 0.3s;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    background: #3498db;
+    color: white;
+    transform: translateX(-5px);
+}
+
+/* ==================== Main Content ==================== */
+.main-content {
+    flex: 1;
+    margin-right: 280px;
+    padding: 2rem;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Card Style */
+.card-custom {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    background: white;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 240px;
+    }
+    .main-content {
+        margin-right: 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(100%);
+        transition: transform 0.4s;
+    }
+    .main-content {
+        margin-right: 0;
+    }
+}

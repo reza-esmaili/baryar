@@ -1,0 +1,76 @@
+/* تعریف فونت‌ها */
+@font-face {
+    font-family: 'BYekan';
+    src: url('../fonts/BYekan.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'BYekan';
+    src: url('../fonts/BYekanBold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+/* اعمال فونت به کل صفحه (اختیاری - در صورتی که در فایل اصلی تعریف نشده باشد) */
+body {
+    font-family: 'BYekan', tahoma, sans-serif;
+}
+
+/* استایل‌های کارت */
+.card-custom {
+    transition: all 0.3s;
+}
+
+.card-custom:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+
+/* استایل عمومی فیلدهای فرم */
+.form-control, .form-select {
+    border-radius: 10px;
+    padding: 12px 14px; 
+    border: 1.5px solid #e0e0e0;
+    transition: all 0.3s;
+}
+
+/* استایل اختصاصی فیلدهای کشویی (Select) برای جلوگیری از تداخل متن و آیکون فلش در حالت RTL */
+.form-select {
+    padding-left: 35px !important; 
+    background-position: left 0.75rem center !important; 
+}
+
+/* افکت فوکوس روی فیلدها */
+.form-control:focus, .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+/* استایل ردیف‌های مربوط به فرم‌ست (Tier) */
+.tier-row {
+    background: #ffffff !important;
+    border: 1px solid #e9ecef !important;
+    transition: all 0.3s;
+}
+
+.tier-row:hover {
+    border-color: #3498db !important;
+}
+
+/* استایل دکمه‌ها */
+.btn {
+    border-radius: 10px;
+}
+.trash-icon {
+    color: #dc3545; /* رنگ قرمز پیش‌فرض */
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+.trash-icon:hover {
+    color: #a71d2a; /* تیره‌تر شدن در حالت هاور */
+    transform: scale(1.1); /* کمی بزرگ شدن در هاور */
+}
+
+ 

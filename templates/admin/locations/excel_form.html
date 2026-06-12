@@ -1,0 +1,21 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <div class="form-row">
+                {{ form.as_p }}
+            </div>
+            <div class="help">
+                <p><strong>راهنما:</strong> فایل اکسل باید شامل دو ستون باشد. ستون A برای نام استان و ستون B برای نام شهرستان. سطر اول به عنوان عنوان (Header) در نظر گرفته شده و نادیده گرفته می‌شود.</p>
+            </div>
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" value="آپلود و پردازش" class="default" name="_save">
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ورود به سامانه</title>
+
+    <link rel="stylesheet"
+          href="{% static 'css/auth.css' %}">
+</head>
+
+<body class="auth-page">
+
+<div class="auth-wrapper">
+
+    <div class="auth-container">
+
+        <div class="auth-side">
+
+            <div class="auth-logo">
+                Cargo Platform
+            </div>
+
+            <h2>
+                مدیریت هوشمند حمل و نقل بین المللی
+            </h2>
+
+            <p>
+                ثبت سفارش، استعلام قیمت، پیگیری بار و مدیریت کامل فرآیند حمل در یک سامانه.
+            </p>
+
+        </div>
+
+        <div class="auth-form">
+
+            <h1 class="auth-title">
+                ورود به حساب کاربری
+            </h1>
+
+            <p class="auth-subtitle">
+                برای ادامه وارد حساب خود شوید
+            </p>
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label>{{ form.mobile.label }}</label>
+                    {{ form.mobile }}
+                </div>
+
+                <div class="mb-3">
+                    <label>{{ form.password.label }}</label>
+                    {{ form.password }}
+                </div>
+
+                <button class="auth-btn">
+                    ورود
+                </button>
+
+            </form>
+
+            <div class="auth-links">
+
+                <p>
+                    حساب کاربری ندارید؟
+                </p>
+
+                <a href="{% url 'customer:customer_register' %}">
+                    ثبت نام مشتری
+                </a>
+
+                |
+                
+                <a href="{% url 'customer:forwarder_register' %}">
+                    ثبت نام فورواردر
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

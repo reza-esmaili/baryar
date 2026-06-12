@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ورود به سامانه</title>
+
+    <link rel="stylesheet"
+          href="{% static 'css/auth.css' %}">
+</head>
+
+<body class="auth-page">
+
+<div class="auth-wrapper">
+
+    <div class="auth-container">
+
+        <div class="auth-side">
+
+            <div class="auth-logo">
+                Cargo Platform
+            </div>
+
+            <h1 class="auth-title">
+                ثبت نام فورواردر
+            </h1>
+
+            <p class="auth-subtitle">
+                ایجاد حساب شرکت حمل و نقل
+            </p>
+        </div>
+
+        <div class="auth-form">
+
+            <h1 class="auth-title">
+                ثبت نام مشتری
+            </h1>
+
+            <p class="auth-subtitle">
+                ایجاد حساب کاربری جدید
+            </p>
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <div class="row">
+
+                    {% for field in form %}
+
+                        <div style="margin-bottom:15px;">
+
+                            <label>
+                                {{ field.label }}
+                            </label>
+
+                            {{ field }}
+
+                            {{ field.errors }}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <button class="auth-btn">
+                    ثبت نام و ورود به پنل
+                </button>
+            </form>
+
+            <div class="auth-links">
+
+                <a href="{% url 'customer:login' %}">
+                    قبلاً ثبت نام کرده‌اید؟ ورود
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

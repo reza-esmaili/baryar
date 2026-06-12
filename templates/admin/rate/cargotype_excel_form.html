@@ -1,0 +1,32 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form enctype="multipart/form-data" method="post" action="">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <h2>{{ title }}</h2>
+            <div class="form-row">
+                {{ form.as_p }}
+            </div>
+            <div class="form-row">
+                <p class="help" style="color: #666; font-size: 13px; margin-top: 10px;">
+                    <strong>راهنما:</strong> فایل اکسل شما باید شامل این چهار ستون باشد (به ترتیب از چپ به راست یا راست به چپ، بر اساس کد شما):<br>
+                    <strong>نوع حمل | دسته | زیرگروه | توضیح</strong><br>
+                    <em>توجه: سطر اول به عنوان عنوان (Header) در نظر گرفته شده و پردازش نمی‌شود.</em>
+                </p>
+            </div>
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" value="آپلود و پردازش فایل" class="default" name="_save">
+            <a href=".." class="button cancel-link">انصراف</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

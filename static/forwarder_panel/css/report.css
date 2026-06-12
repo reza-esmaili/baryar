@@ -1,0 +1,76 @@
+/* تنظیمات کلی صفحه گزارش */
+.report-container {
+    padding: 1.5rem;
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+/* ظاهر Glassmorphism برای کارت اصلی */
+.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* چیدمان فیلترها (Grid) */
+.filters-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    align-items: end; /* برای هم‌تراز شدن دکمه با اینپوت‌ها */
+}
+
+/* در صفحات بزرگتر، فیلترها در 4 ستون قرار می‌گیرند */
+@media (min-width: 768px) {
+    .filters-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.filter-group input, .filter-group select {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #f8fafc;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.filter-group input:focus, .filter-group select:focus {
+    border-color: #4318ff;
+    background: #ffffff;
+}
+
+.button-group button {
+    padding: 0.6rem 1rem;
+    background-color: #4318ff;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.button-group button:hover {
+    background-color: #3311cc;
+}
+
+/* ارتفاع نمودار */
+#salesChart {
+    min-height: 400px;
+    direction: ltr; /* برای نمایش صحیح محورهای ApexCharts */
+}

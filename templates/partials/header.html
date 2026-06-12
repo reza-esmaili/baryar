@@ -1,0 +1,13 @@
+{% load static %}
+<header class="site-header" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">کارگو<span>پلاس</span></a>
+    <ul class="nav">
+      <li><a href="{% url 'core:home' %}">خانه</a></li>
+      <li><a href="{% url 'orders:create_request' %}">استعلام نرخ</a></li>
+      <li><a href="#">درباره ما</a></li>
+      <li><a href="#">تماس</a></li>
+    </ul>
+    <button href="{% url 'customer:profile' %}" class="header-cta">حساب کاربری</button>
+  </div>
+</header>

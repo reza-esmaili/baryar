@@ -1,0 +1,410 @@
+/* متغیرهای رنگی پایه */
+:root {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary-color: #f1f5f9;
+    --secondary-hover: #e2e8f0;
+    --success-color: #10b981;
+    --success-hover: #059669;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --radius: 8px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* تنظیمات پایه */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.mt-15 { margin-top: 15px; }
+
+/* هدر و ناوبری */
+.navbar {
+    background: rgba(255,255,255,.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px rgba(0,0,0,.04);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+}
+
+.logo a {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.nav-menu ul {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-menu a:hover {
+    color: var(--primary-color);
+}
+
+/* دکمه‌ها */
+button, .btn-primary, .btn-secondary, .btn-success {
+    cursor: pointer;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg,#2563eb,#3b82f6);
+    color:#fff;
+}
+.btn-primary:hover { background-color: var(--primary-hover); }
+
+.btn-secondary { background-color: var(--secondary-color); color: var(--text-main); }
+.btn-secondary:hover { background-color: var(--secondary-hover); }
+
+.btn-success { background-color: var(--success-color); color: white; }
+.btn-success:hover { background-color: var(--success-hover); }
+
+.btn-large {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+}
+
+/* ساختار محتوا و کارت‌ها */
+.main-content {
+    flex: 1;
+    padding: 32px 0 48px;
+}
+
+.card {
+    background-color: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 30px;
+    margin-bottom: 20px;
+}
+
+.card-header h2 { margin-bottom: 5px; }
+.card-header p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+
+.card-inner {
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+/* فرم‌ها */
+.form-section {
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.form-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+.step-badge {
+    background-color: var(--primary-color);
+    color: white;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.form-grid p {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-grid label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-main);
+}
+
+.form-grid input, .form-grid select, .form-grid textarea {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-grid input:focus, .form-grid select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* نتایج جستجو */
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.weight-badge {
+    background-color: #e0e7ff;
+    color: var(--primary-hover);
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 14px;
+}
+
+/* جداول */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modern-table th, .modern-table td {
+    padding: 15px;
+    text-align: right;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modern-table th {
+    background-color: var(--bg-main);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.modern-table tr:last-child td {
+    border-bottom: none;
+}
+
+.modern-table tr:hover td {
+    background-color: var(--bg-main);
+}
+
+.total-price {
+    color: var(--primary-color);
+    font-size: 18px;
+}
+
+/* حالت خالی (Empty State) */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+/* فوتر */
+.footer {
+    background-color: var(--bg-card);
+    padding: 20px 0;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* ریسپانسیو */
+@media (max-width: 768px) {
+    .nav-menu ul {
+        display: none; /* در حالت موبایل منو همبرگری نیاز دارد، فعلا مخفی می‌شود */
+    }
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+/* ==================================
+   FOOTER
+================================== */
+
+.site-footer{
+    background:#0f172a;
+    color:#cbd5e1;
+    margin-top:80px;
+    padding-top:60px;
+}
+
+.footer-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(4,1fr);
+    gap:40px;
+}
+
+.footer-column h4{
+    color:#fff;
+    margin-bottom:20px;
+    font-size:18px;
+    font-weight:700;
+}
+
+.footer-column ul{
+    list-style:none;
+    padding:0;
+    margin:0;
+}
+
+.footer-column li{
+    margin-bottom:12px;
+}
+
+.footer-column a{
+    color:#cbd5e1;
+    text-decoration:none;
+    transition:.2s;
+}
+
+.footer-column a:hover{
+    color:#60a5fa;
+}
+
+.footer-contact li{
+    line-height:2;
+}
+
+.licenses{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.licenses img{
+    width:90px;
+    height:90px;
+    object-fit:contain;
+    background:#fff;
+    border-radius:12px;
+    padding:8px;
+}
+
+.footer-bottom{
+    border-top:1px solid rgba(255,255,255,.08);
+    margin-top:40px;
+    padding:25px 0;
+    text-align:center;
+    color:#94a3b8;
+}
+
+@media(max-width:992px){
+
+    .footer-grid{
+        grid-template-columns:
+            repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:768px){
+
+    .footer-grid{
+        grid-template-columns:1fr;
+    }
+
+    .footer-column{
+        text-align:center;
+    }
+
+    .licenses{
+        justify-content:center;
+    }
+
+}
+.navbar{
+    height:80px;
+    background:#fff;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.logo img{
+    max-height:55px;
+    width:auto;
+    object-fit:contain;
+}
+body{
+    background:#f8fafc;
+}
+
+.container{
+    max-width:1400px;
+}
