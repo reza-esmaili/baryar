@@ -15,7 +15,7 @@ body{background:var(--bg);color:var(--text);direction:rtl;}
 }
 .site-header.visible{top:0;}
 .header-inner{
-  max-width:1180px;margin:0 auto;padding:0 24px;
+  max-width:1300px;margin:0 auto;padding:0 24px;
   width:100%;display:flex;align-items:center;justify-content:space-between;
 }
 .logo{font-size:18px;font-weight:800;color:var(--primary);text-decoration:none;}
@@ -115,7 +115,7 @@ body{background:var(--bg);color:var(--text);direction:rtl;}
 }
 /* overlay gradient روی لبه چپ تصویر برای ترکیب با پس‌زمینه */
 .hero-image::before{
-  content:'';position:absolute;inset:0;z-index:1;
+  content:'';inset:0;
   background:linear-gradient(to left,transparent 60%,#eef3fb 98%);
 }
 
@@ -208,10 +208,10 @@ body{background:var(--bg);color:var(--text);direction:rtl;}
 /* ─── FOOTER ─── */
 .site-footer{background:#0f172a;color:#94a3b8;padding:50px 0 24px;}
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:36px;margin-bottom:40px;}
-.footer-brand .logo-f{font-size:20px;font-weight:800;color:#fff;margin-bottom:12px;}
+.footer-brand .logo-f{font-size:20px;font-weight:800;color:#fff;margin-bottom:12px;padding-right: 20px;}
 .footer-brand .logo-f span{color:var(--orange);}
-.footer-brand p{font-size:13px;line-height:2;}
-.social{display:flex;gap:10px;margin-top:16px;}
+.footer-brand p{font-size:13px;line-height:2;padding-right: 20px;}
+.social{display:flex;gap:10px;margin-top:16px;padding-right: 20px;}
 .social a{
   width:34px;height:34px;border-radius:9px;background:#1e293b;
   display:flex;align-items:center;justify-content:center;
@@ -267,9 +267,9 @@ body{background:var(--bg);color:var(--text);direction:rtl;}
 .hs-txt small{font-size:11px;color:#7a8aa3;}
 
 /* هوایی: بالا، روی هواپیما */
-.hs-air {top:16%; left:4%;  animation-delay:0s;}
+.hs-air {top:25%; left:50%;  animation-delay:0s;}
 /* دریایی: وسط، روی کشتی */
-.hs-sea {top:44%; left:1%;  animation-delay:1.2s;}
+.hs-sea {top:70%; left:8%;  animation-delay:1.2s;}
 /* زمینی: پایین، کنار کامیون */
 .hs-land{bottom:18%; right:6%; animation-delay:2.4s;}
 
@@ -367,4 +367,9 @@ html, body{
 .hero, .hero-image, .hero-grid{
   max-width:100%;
   overflow:hidden;        /* hotspotهای بیرون‌زده را می‌برد */
+}
+.logo img {
+    max-height: 55px;
+    width: auto;
+    object-fit: contain;
 }

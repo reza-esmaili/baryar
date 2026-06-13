@@ -1,31 +1,57 @@
 <div class="search-card">
-
   <!-- تب‌های انتخاب نوع حمل -->
   <div class="search-tabs">
-    <button type="button" class="tab active" data-mode="sea"  onclick="setTab('sea', this)">🚢 دریایی</button>
-    <button type="button" class="tab"        data-mode="air"  onclick="setTab('air', this)">✈️ هوایی</button>
-    <button type="button" class="tab"        data-mode="land" onclick="setTab('land', this)">🚚 زمینی</button>
+    <button
+      type="button"
+      class="tab active"
+      data-mode="sea"
+      onclick="setTab('sea', this)"
+    >
+      🚢 دریایی
+    </button>
+    <button
+      type="button"
+      class="tab"
+      data-mode="air"
+      onclick="setTab('air', this)"
+    >
+      ✈️ هوایی
+    </button>
+    <button
+      type="button"
+      class="tab"
+      data-mode="land"
+      onclick="setTab('land', this)"
+    >
+      🚚 زمینی
+    </button>
   </div>
 
   <!-- فرم استعلام -->
   <form method="get" action="#" class="search-form">
-    <input type="hidden" name="mode" id="mode-input" value="sea">
+    <input type="hidden" name="mode" id="mode-input" value="sea" />
 
     <div class="fields">
-
       <!-- مبدأ -->
       <div class="field">
         <label for="origin">مبدأ</label>
         <select name="origin" id="origin" required>
           <option value="" disabled selected>انتخاب مبدأ</option>
           {% for city in origin_cities %}
-            <option value="{{ city.id }}">{{ city.name }}</option>
+          <option value="{{ city.id }}">{{ city.name }}</option>
           {% endfor %}
         </select>
       </div>
 
       <!-- دکمه جابجایی -->
-      <button type="button" class="swap-btn" onclick="swapFields()" title="جابجایی مبدأ و مقصد">⇄</button>
+      <button
+        type="button"
+        class="swap-btn"
+        onclick="swapFields()"
+        title="جابجایی مبدأ و مقصد"
+      >
+        ⇄
+      </button>
 
       <!-- مقصد -->
       <div class="field">
@@ -33,11 +59,10 @@
         <select name="destination" id="destination" required>
           <option value="" disabled selected>انتخاب مقصد</option>
           {% for port in destination_ports %}
-            <option value="{{ port.id }}">{{ port.name }}</option>
+          <option value="{{ port.id }}">{{ port.name }}</option>
           {% endfor %}
         </select>
       </div>
-
     </div>
 
     <button type="submit" class="search-submit">استعلام قیمت</button>
