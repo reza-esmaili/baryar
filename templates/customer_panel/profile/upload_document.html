@@ -1,73 +1,42 @@
-{% extends 'base.html' %}
+{% extends 'customer_panel/profile/profile_base.html' %}
 {% load static %}
 
 {% block title %}
-بارگذاری مدرک
+  بارگذاری مدرک
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'customer_panel/css/user_profile.css' %}">
+  <link rel="stylesheet" href="{% static 'customer_panel/css/user_profile.css' %}" />
 {% endblock %}
 
-{% block content %}
-
-<div class="profile-page">
-
+{% block profile_content %}
+  <div class="profile-page">
     <div class="profile-card">
+      <div class="card-title">بارگذاری مدرک هویتی</div>
 
-        <div class="card-title">
-            بارگذاری مدرک هویتی
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-grid">
+          {% for field in form %}
+            <p>
+              {{ field.label_tag }}
+
+              {{ field }}
+
+              {% if field.errors %}
+                <small class="error-text">{{ field.errors|striptags }}</small>
+              {% endif %}
+            </p>
+          {% endfor %}
         </div>
 
-        <form method="post"
-              enctype="multipart/form-data">
+        <div class="actions-row">
+          <button type="submit" class="btn-success">بارگذاری مدرک</button>
 
-            {% csrf_token %}
-
-            <div class="form-grid">
-
-                {% for field in form %}
-
-                    <p>
-
-                        {{ field.label_tag }}
-
-                        {{ field }}
-
-                        {% if field.errors %}
-                            <small class="error-text">
-                                {{ field.errors|striptags }}
-                            </small>
-                        {% endif %}
-
-                    </p>
-
-                {% endfor %}
-
-            </div>
-
-            <div class="actions-row">
-
-                <button type="submit"
-                        class="btn-success">
-
-                    بارگذاری مدرک
-
-                </button>
-
-                <a href="{% url 'customer:documents' %}"
-                   class="btn-secondary">
-
-                    بازگشت
-
-                </a>
-
-            </div>
-
-        </form>
-
+          <a href="{% url 'customer:documents' %}" class="btn-secondary">بازگشت</a>
+        </div>
+      </form>
     </div>
-
-</div>
-
+  </div>
 {% endblock %}

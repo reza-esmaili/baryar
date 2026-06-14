@@ -1,11 +1,11 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login , logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from accounts.models import User, IdentityDocument, CustomerProfile, OTPCode
+from accounts.models import User, CustomerProfile, OTPCode
 from accounts.services import request_otp, verify_otp, SMSIRException
 from orders.models import CargoRequest
 
@@ -29,7 +29,6 @@ def redirect_based_on_role(user):
         return redirect("forwarder_panel:dashboard")
 
     return redirect("/")
-
 
 
 def login_view(request):
@@ -127,7 +126,10 @@ def web_login_verify_otp(request):
         try:
             user = User.objects.get(mobile=mobile, is_active=True)
         except User.DoesNotExist:
-            return JsonResponse({"ok": False, "message": "کاربر یافت نشد."}, status=404)
+            return JsonResponse(
+                {"ok": False, "message": "کاربر یافت نشد."},
+                status=404,
+            )
 
         login(request, user)
 
@@ -139,11 +141,13 @@ def web_login_verify_otp(request):
         ]:
             redirect_url = "/forwarder-panel/"
 
-        return JsonResponse({
-            "ok": True,
-            "message": "ورود با موفقیت انجام شد.",
-            "redirect_url": redirect_url,
-        })
+        return JsonResponse(
+            {
+                "ok": True,
+                "message": "ورود با موفقیت انجام شد.",
+                "redirect_url": redirect_url,
+            }
+        )
 
     return JsonResponse(
         {"ok": False, "message": "کد وارد شده اشتباه یا منقضی شده است."},
@@ -160,16 +164,28 @@ def web_register_request_otp(request):
     role = request.POST.get("role", User.Role.CUSTOMER)
 
     if role not in [User.Role.CUSTOMER, User.Role.FORWARDER_ADMIN]:
-        return JsonResponse({"ok": False, "message": "نوع ثبت‌نام معتبر نیست."}, status=400)
+        return JsonResponse(
+            {"ok": False, "message": "نوع ثبت‌نام معتبر نیست."},
+            status=400,
+        )
 
     if not first_name or not last_name or not mobile or not password:
-        return JsonResponse({"ok": False, "message": "لطفاً همه فیلدهای ضروری را وارد کنید."}, status=400)
+        return JsonResponse(
+            {"ok": False, "message": "لطفاً همه فیلدهای ضروری را وارد کنید."},
+            status=400,
+        )
 
     if not OTPCode.is_valid_mobile(mobile):
-        return JsonResponse({"ok": False, "message": "شماره موبایل معتبر نیست."}, status=400)
+        return JsonResponse(
+            {"ok": False, "message": "شماره موبایل معتبر نیست."},
+            status=400,
+        )
 
     if User.objects.filter(mobile=mobile).exists():
-        return JsonResponse({"ok": False, "message": "این شماره موبایل قبلاً ثبت شده است."}, status=400)
+        return JsonResponse(
+            {"ok": False, "message": "این شماره موبایل قبلاً ثبت شده است."},
+            status=400,
+        )
 
     request.session["pending_register"] = {
         "first_name": first_name,
@@ -194,7 +210,10 @@ def web_register_verify_otp(request):
 
     if not pending:
         return JsonResponse(
-            {"ok": False, "message": "اطلاعات ثبت‌نام یافت نشد. لطفاً دوباره تلاش کنید."},
+            {
+                "ok": False,
+                "message": "اطلاعات ثبت‌نام یافت نشد. لطفاً دوباره تلاش کنید.",
+            },
             status=400,
         )
 
@@ -203,7 +222,10 @@ def web_register_verify_otp(request):
 
     if User.objects.filter(mobile=mobile).exists():
         request.session.pop("pending_register", None)
-        return JsonResponse({"ok": False, "message": "این شماره موبایل قبلاً ثبت شده است."}, status=400)
+        return JsonResponse(
+            {"ok": False, "message": "این شماره موبایل قبلاً ثبت شده است."},
+            status=400,
+        )
 
     if not verify_otp(mobile=mobile, purpose=OTPCode.Purpose.REGISTER, code=code):
         return JsonResponse(
@@ -228,11 +250,20 @@ def web_register_verify_otp(request):
     else:
         redirect_url = "/"
 
-    return JsonResponse({
-        "ok": True,
-        "message": "ثبت‌نام با موفقیت انجام شد.",
-        "redirect_url": redirect_url,
-    })
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": "ثبت‌نام با موفقیت انجام شد.",
+            "redirect_url": redirect_url,
+        }
+    )
+
+@login_required
+@require_POST
+def logout_view(request):
+    logout(request)
+    messages.success(request, "با موفقیت از حساب کاربری خارج شدید.")
+    return redirect("/")
 
 
 @require_POST
@@ -243,28 +274,82 @@ def web_register_cancel(request):
 
 @login_required
 def profile_view(request):
+    """
+    صفحه یکپارچه مشاهده و ویرایش پروفایل کاربر.
+
+    این View هم اطلاعات نمایشی را به profile.html می‌فرستد
+    و هم فرم‌های ویرایش را با instance صحیح مقداردهی می‌کند.
+    """
+
     user = request.user
 
-    customer_profile = getattr(user, "customer_profile", None)
+    # اگر برای کاربر CustomerProfile وجود نداشت، ساخته می‌شود.
+    customer_profile, created = CustomerProfile.objects.get_or_create(user=user)
+
     company_profile = getattr(user, "customer_company_profile", None)
     business_info = getattr(user, "business_info", None)
-    documents = user.documents.all()
 
+    documents = user.documents.all()
     orders = user.cargo_requests.order_by("-created_at")[:5]
 
+    if request.method == "POST":
+        user_form = UserProfileForm(request.POST, instance=user)
+        profile_form = CustomerProfileForm(request.POST, instance=customer_profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, "اطلاعات پروفایل با موفقیت به‌روزرسانی شد.")
+            return redirect("customer:profile")
+        else:
+            # این دو خط برای این است که در ترمینال VS Code ببینید دقیقا چه فیلدی ایراد دارد
+            print("--- User Form Errors ---", user_form.errors)
+            print("--- Profile Form Errors ---", profile_form.errors)
+            
+            messages.error(request, "خطایی در فرم رخ داده است. لطفاً فیلدها را بررسی کنید.")
+
+
+    else:
+        user_form = UserProfileForm(instance=user)
+        profile_form = CustomerProfileForm(instance=customer_profile)
+
     context = {
+        # اطلاعات اصلی پروفایل
         "customer_profile": customer_profile,
         "company_profile": company_profile,
         "business_info": business_info,
+
+        # فرم‌های ویرایش پروفایل
+        "user_form": user_form,
+        "profile_form": profile_form,
+
+        # مدارک و سفارش‌ها
         "documents": documents,
         "recent_orders": orders,
+
+        # آمارها
         "orders_count": user.cargo_requests.count(),
         "pending_orders": user.cargo_requests.filter(status="pending").count(),
         "completed_orders": user.cargo_requests.filter(status="completed").count(),
         "documents_count": documents.count(),
     }
 
-    return render(request, "customer_panel/profile.html", context)
+    return render(request, "customer_panel/profile/profile.html", context)
+
+
+@login_required
+def edit_profile(request):
+    """
+    این View قبلاً برای صفحه جداگانه ویرایش استفاده می‌شد.
+
+    چون حالا مشاهده و ویرایش داخل profile.html ادغام شده،
+    بهتر است هر درخواستی به edit_profile به صفحه اصلی پروفایل منتقل شود.
+
+    اگر در urls.py هنوز مسیر customer:profile_edit وجود دارد،
+    این تابع باعث می‌شود لینک‌های قبلی خراب نشوند.
+    """
+
+    return redirect("customer:profile")
 
 
 @login_required
@@ -276,33 +361,6 @@ def profile_dashboard(request):
     }
 
     return render(request, "customer_panel/profile/dashboard.html", context)
-
-
-@login_required
-def edit_profile(request):
-    profile, created = CustomerProfile.objects.get_or_create(user=request.user)
-
-    if request.method == "POST":
-        user_form = UserProfileForm(request.POST, instance=request.user)
-        profile_form = CustomerProfileForm(request.POST, instance=profile)
-
-        if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            profile_form.save()
-            return redirect("customer:profile")
-
-    else:
-        user_form = UserProfileForm(instance=request.user)
-        profile_form = CustomerProfileForm(instance=profile)
-
-    return render(
-        request,
-        "customer_panel/profile/edit_profile.html",
-        {
-            "user_form": user_form,
-            "profile_form": profile_form,
-        },
-    )
 
 
 @login_required
@@ -357,7 +415,10 @@ def upload_document(request):
             doc.user = request.user
             doc.save()
 
+            messages.success(request, "مدرک با موفقیت بارگذاری شد.")
             return redirect("customer:documents")
+
+        messages.error(request, "لطفاً خطاهای فرم را بررسی کنید.")
 
     else:
         form = IdentityDocumentForm()

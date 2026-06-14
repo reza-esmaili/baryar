@@ -1,57 +1,36 @@
 {% extends 'customer_panel/profile/profile_base.html' %}
 
 {% block profile_content %}
-
-<div class="content-card">
-
+  <div class="content-card">
     <h2>سفارشات من</h2>
 
     <table class="modern-table">
-
-        <thead>
-            <tr>
-                <th>شماره</th>
-                <th>نوع کالا</th>
-                <th>وضعیت</th>
-                <th>عملیات</th>
-            </tr>
-        </thead>
-
-        <tbody>
-
-        {% for order in orders %}
-
+      <thead>
         <tr>
+          <th>شماره</th>
+          <th>نوع کالا</th>
+          <th>وضعیت</th>
+          <th>عملیات</th>
+        </tr>
+      </thead>
 
+      <tbody>
+        {% for order in orders %}
+          <tr>
             <td>#{{ order.id }}</td>
 
             <td>{{ order.cargo_type }}</td>
 
             <td>
-                <span class="status-badge status-{{ order.status }}">
-                    {{ order.get_status_display }}
-                </span>
+              <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
             </td>
 
             <td>
-
-                <a href="{% url 'customer:order_detail' order.id %}"
-                   class="btn-secondary">
-
-                    مشاهده
-
-                </a>
-
+              <a href="{% url 'customer:order_detail' order.id %}" class="btn-secondary">مشاهده</a>
             </td>
-
-        </tr>
-
+          </tr>
         {% endfor %}
-
-        </tbody>
-
+      </tbody>
     </table>
-
-</div>
-
+  </div>
 {% endblock %}

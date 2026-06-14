@@ -1,0 +1,220 @@
+.profile-container {
+    direction: rtl;
+    padding: 10px 0;
+}
+
+.profile-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid #edf2f7;
+    overflow: hidden;
+}
+
+/* Header */
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    background: #f8fafc;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.header-main { display: flex; align-items: center; gap: 15px; }
+
+.profile-avatar-circle {
+    width: 50px;
+    height: 50px;
+    background: #e0e7ff;
+    color: #4f46e5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+.header-info h2 { margin: 0; font-size: 1.25rem; color: #1a202c; }
+.header-info p { margin: 4px 0 0; font-size: 0.85rem; color: #718096; }
+
+.btn-toggle-edit {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #4a5568;
+}
+
+.btn-toggle-edit:hover { background: #f1f5f9; border-color: #cbd5e0; }
+.btn-toggle-edit.active { background: #fff1f2; color: #e11d48; border-color: #fecaca; }
+
+/* View Mode Grid */
+.info-display-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    padding: 30px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.info-item label {
+    font-size: 0.85rem;
+    color: #a0aec0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-item span {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 1.05rem;
+}
+
+.full-width { grid-column: span 2; }
+.ltr-text { direction: ltr; text-align: right; }
+
+/* Edit Mode Form */
+.form-display-container { padding: 30px; animation: fadeIn 0.3s ease; }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-group label { font-weight: 700; font-size: 0.9rem; color: #4a5568; }
+
+.input-icon-wrapper { position: relative; }
+.input-icon-wrapper i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+}
+
+.form-control-custom {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fdfdfd;
+    transition: 0.2s;
+}
+
+.form-control-custom:focus {
+    border-color: #4f46e5;
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    padding-top: 20px;
+    border-top: 1px solid #edf2f7;
+}
+
+.btn-save {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    background: #f1f5f9;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .info-display-grid, .form-grid { grid-template-columns: 1fr; }
+    .full-width { grid-column: span 1; }
+}
+/* باکس‌های نمایش اطلاعات با Border */
+.info-display-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 30px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 20px;
+    border: 1px solid #e2e8f0; /* ایجاد Border ظریف */
+    border-radius: 12px;      /* گرد کردن گوشه‌ها */
+    background-color: #fcfcfc; /* رنگ پس‌زمینه بسیار ملایم */
+    transition: all 0.3s ease;
+}
+
+/* افکت هاور روی باکس‌ها */
+.info-item:hover {
+    border-color: #4f46e5;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
+}
+
+.info-item label {
+    font-size: 0.85rem;
+    color: #718096; /* رنگ متن برچسب */
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-item label i {
+    color: #4f46e5; /* رنگ آیکون‌ها */
+}
+
+.info-item span {
+    font-weight: 700;
+    color: #1a202c;
+    font-size: 1rem;
+}
+
+/* برای آدرس که تمام عرض را می‌گیرد */
+.full-width {
+    grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+    .info-display-grid {
+        grid-template-columns: 1fr;
+    }
+    .full-width {
+        grid-column: span 1;
+    }
+}

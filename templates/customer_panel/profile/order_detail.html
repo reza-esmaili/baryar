@@ -1,229 +1,148 @@
 {% extends 'customer_panel/profile/profile_base.html' %}
 {% load static %}
-{% load humanize %} 
+{% load humanize %}
+{% load jformat %}
 
 {% block title %}
-جزئیات سفارش
+  جزئیات سفارش
 {% endblock %}
 
 {% block profile_content %}
+  <div class="content-card">
+    <div class="content-header">
+      <h2>سفارش #{{ order.id }}</h2>
 
-<div class="content-card">
+      <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+    </div>
 
-```
-<div class="content-header">
-
-    <h2>
-        سفارش #{{ order.id }}
-    </h2>
-
-    <span class="status-badge status-{{ order.status }}">
-        {{ order.get_status_display }}
-    </span>
-
-</div>
-
-<div class="info-grid">
-
-    <div class="info-box">
+    <div class="info-grid">
+      <div class="info-box">
         <label>نوع حمل</label>
-        <strong>
-            {{ order.get_transport_mode_display }}
-        </strong>
-    </div>
+        <strong>{{ order.get_transport_mode_display }}</strong>
+      </div>
 
-    <div class="info-box">
+      <div class="info-box">
         <label>نوع کالا</label>
-        <strong>
-            {{ order.cargo_type }}
-        </strong>
-    </div>
+        <strong>{{ order.cargo_type }}</strong>
+      </div>
 
-    <div class="info-box">
+      <div class="info-box">
         <label>وزن واقعی</label>
-        <strong>
-            {{ order.actual_weight }} KG
-        </strong>
-    </div>
+        <strong>{{ order.actual_weight }} KG</strong>
+      </div>
 
-    <div class="info-box">
+      <div class="info-box">
         <label>شهر مبدا</label>
-        <strong>
-            {{ order.origin_city }}
-        </strong>
-    </div>
+        <strong>{{ order.origin_city }}</strong>
+      </div>
 
-    <div class="info-box">
+      <div class="info-box">
         <label>بندر مقصد</label>
-        <strong>
-            {{ order.destination_port }}
-        </strong>
-    </div>
+        <strong>{{ order.destination_port }}</strong>
+      </div>
 
-    <div class="info-box">
+      <div class="info-box">
         <label>تاریخ ثبت</label>
-        <strong>
-            {{ order.created_at|date:"Y/m/d H:i" }}
-        </strong>
+        <strong>{{ order.created_at|jformat:"%Y/%m/%d - %H:%M" }}</strong>
+      </div>
+
+      {% if order.container_size %}
+        <div class="info-box">
+          <label>سایز کانتینر</label>
+          <strong>{{ order.get_container_size_display }}</strong>
+        </div>
+      {% endif %}
+
+      {% if order.container_type %}
+        <div class="info-box">
+          <label>نوع کانتینر</label>
+          <strong>{{ order.get_container_type_display }}</strong>
+        </div>
+      {% endif %}
+
+      {% if order.container_count %}
+        <div class="info-box">
+          <label>تعداد کانتینر</label>
+          <strong>{{ order.container_count }}</strong>
+        </div>
+      {% endif %}
+
+      {% if order.final_price %}
+        <div class="info-box">
+          <label>قیمت نهایی</label>
+          <strong>{{ order.final_price|intcomma }} ریال</strong>
+        </div>
+      {% endif %}
     </div>
+  </div>
 
-    {% if order.container_size %}
-    <div class="info-box">
-        <label>سایز کانتینر</label>
-        <strong>
-            {{ order.get_container_size_display }}
-        </strong>
-    </div>
-    {% endif %}
+  {% if order.dimensions.all %}
+    <div class="content-card">
+      <div class="content-header">
+        <h2>ابعاد بار</h2>
+      </div>
 
-    {% if order.container_type %}
-    <div class="info-box">
-        <label>نوع کانتینر</label>
-        <strong>
-            {{ order.get_container_type_display }}
-        </strong>
-    </div>
-    {% endif %}
-
-    {% if order.container_count %}
-    <div class="info-box">
-        <label>تعداد کانتینر</label>
-        <strong>
-            {{ order.container_count }}
-        </strong>
-    </div>
-    {% endif %}
-
-    {% if order.final_price %}
-    <div class="info-box">
-        <label>قیمت نهایی</label>
-        <strong>
-            {{ order.final_price|intcomma }} ریال
-        </strong>
-    </div>
-    {% endif %}
-
-</div>
-```
-
-</div>
-
-{% if order.dimensions.all %}
-
-<div class="content-card">
-
-```
-<div class="content-header">
-    <h2>ابعاد بار</h2>
-</div>
-
-<div class="table-responsive">
-
-    <table class="orders-table">
-
-        <thead>
+      <div class="table-responsive">
+        <table class="orders-table">
+          <thead>
             <tr>
-                <th>طول</th>
-                <th>عرض</th>
-                <th>ارتفاع</th>
-                <th>تعداد</th>
+              <th>طول</th>
+              <th>عرض</th>
+              <th>ارتفاع</th>
+              <th>تعداد</th>
             </tr>
-        </thead>
+          </thead>
 
-        <tbody>
-
+          <tbody>
             {% for item in order.dimensions.all %}
-
-            <tr>
+              <tr>
                 <td>{{ item.length }}</td>
                 <td>{{ item.width }}</td>
                 <td>{{ item.height }}</td>
                 <td>{{ item.quantity }}</td>
-            </tr>
-
+              </tr>
             {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
 
-        </tbody>
+  {% if order.history.all %}
+    <div class="content-card">
+      <div class="content-header">
+        <h2>تاریخچه سفارش</h2>
+      </div>
 
-    </table>
-
-</div>
-```
-
-</div>
-
-{% endif %}
-
-{% if order.history.all %}
-
-<div class="content-card">
-
-```
-<div class="content-header">
-    <h2>تاریخچه سفارش</h2>
-</div>
-
-{% for item in order.history.all %}
-
-    <div class="document-row">
-
-        <div>
-
+      {% for item in order.history.all %}
+        <div class="document-row">
+          <div>
             <strong>
-
-                {% if item.note %}
-                    {{ item.note }}
-                {% else %}
-                    تغییر {{ item.field_name }}
-                {% endif %}
-
+              {% if item.note %}
+                {{ item.note }}
+              {% else %}
+                تغییر {{ item.field_name }}
+              {% endif %}
             </strong>
+          </div>
 
+          <small>{{ item.created_at|jformat:"%Y/%m/%d - %H:%M"}}</small>
         </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
-        <small>
-            {{ item.created_at|date:"Y/m/d H:i" }}
-        </small>
-
+  <div class="content-card">
+    <div class="content-header">
+      <h2>عملیات</h2>
     </div>
 
-{% endfor %}
-```
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{% url 'customer:order_list' %}" class="btn-secondary">بازگشت به لیست سفارشات</a>
 
-</div>
-
-{% endif %}
-
-<div class="content-card">
-
-```
-<div class="content-header">
-    <h2>عملیات</h2>
-</div>
-
-<div style="display:flex;gap:10px;flex-wrap:wrap;">
-
-    <a href="{% url 'customer:order_list' %}"
-       class="btn-secondary">
-
-        بازگشت به لیست سفارشات
-
-    </a>
-
-    {% if order.status == 'draft' or order.status == 'pending' %}
-
-    <a href="#"
-       class="btn-primary">
-
-        ویرایش سفارش
-
-    </a>
-
-    {% endif %}
-
-</div>
-```
-
-</div>
-
+      {% if order.status == 'draft' or order.status == 'pending' %}
+        <a href="#" class="btn-primary">ویرایش سفارش</a>
+      {% endif %}
+    </div>
+  </div>
 {% endblock %}

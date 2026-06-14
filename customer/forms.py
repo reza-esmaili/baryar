@@ -23,28 +23,23 @@ class RegisterForm(forms.ModelForm):
         }
 
 class UserProfileForm(forms.ModelForm):
-
     class Meta:
         model = User
-
+        # فیلد mobile را از اینجا حذف کردیم تا خطای Duplicate ندهد
         fields = [
             "first_name",
             "last_name",
-            "email"
+            "email",
         ]
-
         widgets = {
-            "first_name": forms.TextInput(attrs={
-                "class": "form-control"
-            }),
-
-            "last_name": forms.TextInput(attrs={
-                "class": "form-control"
-            }),
-
-            "email": forms.EmailInput(attrs={
-                "class": "form-control"
-            })
+            "first_name": forms.TextInput(attrs={"class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+        }
+        labels = {
+            "first_name": "نام",
+            "last_name": "نام خانوادگی",
+            "email": "ایمیل (اختیاری)",
         }
 
 

@@ -1,3 +1,5 @@
+{% load jformat %}
+
 {% for ticket in tickets %}
   <tr class="{% if ticket.unread_for_user %}ticket-unread{% endif %}">
     <td>#{{ ticket.number }}</td>
@@ -13,19 +15,37 @@
             {% if ticket.status == 'open' %}
           
           
+          
+          
+          
                 status-open
+
+
+
 
 
         {% elif ticket.status == 'answered' %}
           
           
+          
+          
+          
                 status-answered
+
+
+
 
 
         {% else %}
           
           
+          
+          
+          
                 status-closed
+
+
+
 
 
         {% endif %}">
@@ -33,7 +53,7 @@
       </span>
     </td>
 
-    <td>{{ ticket.updated_at|date:'Y/m/d H:i' }}</td>
+    <td>{{ ticket.updated_at|jformat:'%Y/%m/%d - %H:%M' }}</td>
 
     <!-- در ردیف جدول -->
     <td>

@@ -1,4 +1,3 @@
-from django.urls import path
 from django.urls import path, include
 
 from . import views
@@ -9,6 +8,7 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("register/", views.customer_register_view, name="customer_register"),
     path("register/forwarder/", views.forwarder_register_view, name="forwarder_register"),
+    path("logout/", views.logout_view, name="logout"),
 
     # Web OTP AJAX
     path("auth/login/request-otp/", views.web_login_request_otp, name="web_login_request_otp"),

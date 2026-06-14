@@ -1,0 +1,159 @@
+{% extends 'customer_panel/profile/profile_base.html' %}
+{% load static %}
+{% if user_form.errors or profile_form.errors %}
+  <div class="alert alert-danger" style="color: red; background: #fee2e2; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+    <ul>
+      {% for field, errors in user_form.errors.items %}
+        <li>{{ field }}: {{ errors|striptags }}</li>
+      {% endfor %}
+      {% for field, errors in profile_form.errors.items %}
+        <li>{{ field }}: {{ errors|striptags }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+{% block profile_content %}
+  <link rel="stylesheet" href="{% static 'customer_panel/css/profile_combined.css' %}" />
+
+  <div class="profile-container" id="profileContainer">
+    <div class="profile-card">
+      <!-- هدر با دکمه سوییچ -->
+      <div class="profile-header">
+        <div class="header-main">
+          <div class="profile-avatar-circle">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="header-info">
+            <h2>اطلاعات حساب کاربری</h2>
+            <p>مدیریت و ویرایش مشخصات فردی</p>
+          </div>
+        </div>
+
+        <button type="button" class="btn-toggle-edit" id="editToggleButton" onclick="toggleEditMode()">
+          <i class="fas fa-edit"></i>
+          <span>ویرایش پروفایل</span>
+        </button>
+      </div>
+
+      <!-- بخش نمایش اطلاعات (Read-Only) -->
+      <div id="viewMode" class="info-display-grid">
+        <div class="info-item">
+          <label><i class="fas fa-user"></i> نام و نام خانوادگی</label>
+          <span>{{ request.user.first_name }} {{ request.user.last_name }}</span>
+        </div>
+
+        <div class="info-item">
+          <label><i class="fas fa-mobile-alt"></i> شماره موبایل</label>
+          <span class="ltr-text">{{ request.user.mobile }}</span>
+        </div>
+
+        <div class="info-item">
+          <label><i class="fas fa-envelope"></i> ایمیل</label>
+          <span>{{ request.user.email|default:'ثبت نشده' }}</span>
+        </div>
+
+        <div class="info-item">
+          <label><i class="fas fa-id-card"></i> کد ملی</label>
+          <span>{{ customer_profile.national_code|default:'ثبت نشده' }}</span>
+        </div>
+
+        <div class="info-item full-width">
+          <label><i class="fas fa-map-marker-alt"></i> آدرس سکونت</label>
+          <span>{{ customer_profile.address|default:'ثبت نشده' }}</span>
+        </div>
+      </div>
+
+      <!-- بخش فرم ویرایش (Hidden by default) -->
+      <!-- بخش فرم ویرایش -->
+      <div id="editMode" class="form-display-container" style="display: none;">
+        <!-- اکشن را به customer:profile تغییر دادیم -->
+        <form method="post" action="{% url 'customer:profile' %}" class="modern-form">
+          {% csrf_token %}
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>نام</label>
+              <div class="input-icon-wrapper">
+                <i class="fas fa-user"></i>
+                {{ user_form.first_name }}
+              </div>
+            </div>
+            <div class="form-group">
+              <label>نام خانوادگی</label>
+              <div class="input-icon-wrapper">
+                <i class="fas fa-user"></i>
+                {{ user_form.last_name }}
+              </div>
+            </div>
+
+            <!-- شماره موبایل را فقط نمایش می‌دهیم (غیر قابل ویرایش) -->
+            <div class="form-group">
+              <label>شماره موبایل (غیرقابل تغییر)</label>
+              <div class="input-icon-wrapper">
+                <i class="fas fa-phone"></i>
+                <input type="text" class="form-control" value="{{ request.user.mobile }}" disabled />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>ایمیل</label>
+              <div class="input-icon-wrapper">
+                <i class="fas fa-envelope"></i>
+                {{ user_form.email }}
+              </div>
+            </div>
+            <div class="form-group">
+              <label>کد ملی</label>
+              <div class="input-icon-wrapper">
+                <i class="fas fa-id-card"></i>
+                {{ profile_form.national_code }}
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label>آدرس</label>
+              <div class="input-icon-wrapper">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ profile_form.address }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <!-- فقط یک دکمه Submit کافیست -->
+            <button type="submit" class="btn-save">ذخیره تغییرات</button>
+            <button type="button" class="btn-cancel" onclick="toggleEditMode()">انصراف</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleEditMode() {
+      const viewMode = document.getElementById('viewMode')
+      const editMode = document.getElementById('editMode')
+      const btnToggle = document.getElementById('editToggleButton')
+      const container = document.getElementById('profileContainer')
+    
+      if (editMode.style.display === 'none') {
+        viewMode.style.display = 'none'
+        editMode.style.display = 'block'
+        btnToggle.innerHTML = '<i class="fas fa-times"></i> <span>لغو تغییرات</span>'
+        btnToggle.classList.add('active')
+        container.classList.add('is-editing')
+      } else {
+        viewMode.style.display = 'grid'
+        editMode.style.display = 'none'
+        btnToggle.innerHTML = '<i class="fas fa-edit"></i> <span>ویرایش پروفایل</span>'
+        btnToggle.classList.remove('active')
+        container.classList.remove('is-editing')
+      }
+    }
+    
+    // اعمال کلاس به تمام اینپوت‌های جنگو
+    document.querySelectorAll('.modern-form input, .modern-form textarea').forEach((el) => {
+      el.classList.add('form-control-custom')
+    })
+  </script>
+{% endblock %}

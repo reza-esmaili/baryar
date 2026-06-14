@@ -35,7 +35,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'rest_framework',
     'django_filters',
-    'support'
+    'support',
+    'django_jalali'
 ]
 ASGI_APPLICATION = "cargo1.asgi.application"
 
