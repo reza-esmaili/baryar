@@ -1,90 +1,152 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
-    <title>ورود به سامانه</title>
+    <title>ثبت‌نام مشتری</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet"
-          href="{% static 'css/auth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
 </head>
 
 <body class="auth-page">
 
+<div class="auth-bg-shape auth-bg-shape-1"></div>
+<div class="auth-bg-shape auth-bg-shape-2"></div>
+
 <div class="auth-wrapper">
 
-    <div class="auth-container">
+    <div class="auth-container auth-container-popup">
 
         <div class="auth-side">
-
             <div class="auth-logo">
+                <span class="auth-logo-icon">🚚</span>
                 Cargo Platform
             </div>
 
-            <h2>
-                مدیریت هوشمند حمل و نقل بین المللی
-            </h2>
+            <h2>ثبت‌نام مشتریان</h2>
 
             <p>
-                ثبت سفارش، استعلام قیمت، پیگیری بار و مدیریت کامل فرآیند حمل در یک سامانه.
+                با ایجاد حساب کاربری، سفارش‌های حمل خود را ثبت، پیگیری و مدیریت کنید.
             </p>
 
+            <div class="auth-feature-list">
+                <span>ثبت سفارش</span>
+                <span>پیگیری بار</span>
+                <span>استعلام قیمت</span>
+            </div>
         </div>
 
         <div class="auth-form">
 
-            <h1 class="auth-title">
-                ثبت نام مشتری
-            </h1>
+            <div class="modal-card active" id="registerMainModal">
+                <h1 class="auth-title">ثبت‌نام مشتری</h1>
 
-            <p class="auth-subtitle">
-                ایجاد حساب کاربری جدید
-            </p>
+                <p class="auth-subtitle">
+                    اطلاعات خود را وارد کنید. تایید شماره موبایل با پیامک انجام می‌شود.
+                </p>
 
-            <form method="post">
+                <div class="alert alert-danger hidden" id="registerError"></div>
 
-                {% csrf_token %}
+                <form id="registerRequestForm" class="auth-form-inner" method="post" novalidate>
+                    {% csrf_token %}
 
-                <div class="row">
+                    <input type="hidden" name="role" value="customer">
 
                     {% for field in form %}
-
-                        <div style="margin-bottom:15px;">
-
-                            <label>
-                                {{ field.label }}
-                            </label>
-
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                             {{ field }}
 
-                            {{ field.errors }}
-
+                            {% if field.errors %}
+                                <div class="error-text">{{ field.errors|join:", " }}</div>
+                            {% endif %}
                         </div>
-
                     {% endfor %}
 
-                </div>
+                    <button type="submit" class="auth-btn">
+                        ثبت اطلاعات و دریافت کد تایید
+                    </button>
+                </form>
 
-                <button class="auth-btn">
-                    ثبت نام
+                <div class="auth-links">
+                    <a href="{% url 'customer:login' %}">
+                        قبلاً ثبت‌نام کرده‌اید؟ ورود
+                    </a>
+                </div>
+            </div>
+
+            <div class="modal-card otp-modal" id="registerOtpModal">
+                <button type="button" class="back-btn" id="registerBackBtn">
+                    <span>→</span>
+                    بازگشت و ویرایش اطلاعات
                 </button>
 
-            </form>
+                <div class="otp-icon">✅</div>
 
-            <div class="auth-links">
+                <h1 class="auth-title">تایید شماره موبایل</h1>
 
-                <a href="{% url 'customer:login' %}">
-                    قبلاً ثبت نام کرده‌اید؟ ورود
-                </a>
+                <p class="auth-subtitle">
+                    کد ۶ رقمی ارسال شده به شماره
+                    <strong id="registerOtpMobileText"></strong>
+                    را وارد کنید.
+                </p>
 
+                <div class="alert alert-info hidden" id="registerOtpInfo"></div>
+                <div class="alert alert-danger hidden" id="registerOtpError"></div>
+
+                <form id="registerOtpVerifyForm" novalidate>
+                    {% csrf_token %}
+
+                    <div class="otp-inputs" data-target="registerOtpCode">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" aria-label="رقم اول کد تایید">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="رقم دوم کد تایید">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="رقم سوم کد تایید">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="رقم چهارم کد تایید">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="رقم پنجم کد تایید">
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" aria-label="رقم ششم کد تایید">
+                    </div>
+
+                    <input type="hidden" id="registerOtpCode" name="code">
+
+                    <div class="otp-meta">
+                        <span>
+                            زمان باقی‌مانده:
+                            <span id="registerTimer">02:00</span>
+                        </span>
+
+                        <button type="button" class="link-btn" id="registerResendBtn" disabled>
+                            ارسال مجدد کد
+                        </button>
+                    </div>
+
+                    <div class="button-row">
+                        <button type="submit" class="auth-btn">
+                            تایید و تکمیل ثبت‌نام
+                        </button>
+
+                        <button type="button" class="auth-btn auth-btn-danger" id="registerCancelBtn">
+                            انصراف
+                        </button>
+                    </div>
+                </form>
             </div>
 
         </div>
-
     </div>
 
 </div>
+
+<script>
+    window.AUTH_URLS = {
+        registerRequestOtp: "{% url 'customer:web_register_request_otp' %}",
+        registerVerifyOtp: "{% url 'customer:web_register_verify_otp' %}",
+        registerCancel: "{% url 'customer:web_register_cancel' %}"
+    };
+</script>
+
+<script src="{% static 'js/auth-otp.js' %}"></script>
 
 </body>
 </html>

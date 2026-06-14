@@ -1,96 +1,202 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
     <title>ورود به سامانه</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- فونت وزیر (در صورت وجود در پروژه) یا جایگزین -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    
+    <style>
+        /* استایل‌های اختصاصی برای اصلاح ظاهر اسکرین‌شات شما */
+        
+        .modal-card {
+            display: none; /* تمام کارت‌ها در ابتدا مخفی */
+        }
+        
+        .modal-card.active {
+            display: block; /* فقط کارت فعال نمایش داده شود */
+            animation: fadeIn 0.3s ease-in-out;
+        }
 
-    <link rel="stylesheet"
-          href="{% static 'css/auth.css' %}">
+        
+
+        .hidden { display: none !important; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* اصلاح استایل دکمه بازگشت */
+        .back-btn {
+            background: #f8f9fa;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover { background: #e9ecef; }
+
+        .otp-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        #loginTimer { color: #d9534f; font-weight: bold; }
+        
+        .link-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+        }
+        
+        .link-btn:disabled { color: #ccc; text-decoration: none; cursor: default; }
+    </style>
 </head>
 
 <body class="auth-page">
 
+<div class="auth-bg-shape auth-bg-shape-1"></div>
+<div class="auth-bg-shape auth-bg-shape-2"></div>
+
 <div class="auth-wrapper">
-
-    <div class="auth-container">
-
+    <div class="auth-container auth-container-popup">
+        
+        <!-- سمت راست: اطلاعات برند -->
         <div class="auth-side">
-
             <div class="auth-logo">
+                <span class="auth-logo-icon">🚚</span>
                 Cargo Platform
             </div>
-
-            <h2>
-                مدیریت هوشمند حمل و نقل بین المللی
-            </h2>
-
-            <p>
-                ثبت سفارش، استعلام قیمت، پیگیری بار و مدیریت کامل فرآیند حمل در یک سامانه.
-            </p>
-
+            <h2>مدیریت هوشمند حمل‌ونقل بین‌المللی</h2>
+            <p>ورود امن به سامانه برای ثبت سفارش، استعلام قیمت، پیگیری بار و مدیریت فرآیند حمل.</p>
+            <div class="auth-feature-list">
+                <span>ورود امن</span>
+                <span>کد یکبارمصرف</span>
+                <span>مدیریت هوشمند</span>
+            </div>
         </div>
 
+        <!-- سمت چپ: فرم‌ها -->
         <div class="auth-form">
 
-            <h1 class="auth-title">
-                ورود به حساب کاربری
-            </h1>
+            <!-- بخش اول: فرم ورود با رمز عبور -->
+            <div class="modal-card active" id="loginMainModal">
+                <h1 class="auth-title">ورود به حساب کاربری</h1>
+                <p class="auth-subtitle">شماره موبایل خود را وارد کنید و روش ورود را انتخاب نمایید.</p>
 
-            <p class="auth-subtitle">
-                برای ادامه وارد حساب خود شوید
-            </p>
-
-            <form method="post">
-
-                {% csrf_token %}
-
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {{ form.non_field_errors }}
-                    </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
                 {% endif %}
 
-                <div class="mb-3">
-                    <label>{{ form.mobile.label }}</label>
-                    {{ form.mobile }}
-                </div>
+                <form method="post" id="passwordLoginForm" class="auth-form-inner">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label>شماره موبایل</label>
+                        <input type="text" name="mobile" id="id_mobile" class="form-control" placeholder="09123456789" required>
+                    </div>
 
-                <div class="mb-3">
-                    <label>{{ form.password.label }}</label>
-                    {{ form.password }}
-                </div>
+                    <div class="form-group password-field">
+                        <label>رمز عبور</label>
+                        <input type="password" name="password" id="id_password" class="form-control" placeholder="******">
+                    </div>
 
-                <button class="auth-btn">
-                    ورود
+                    <button type="submit" class="auth-btn">ورود با رمز عبور</button>
+
+                    <button type="button" class="auth-btn auth-btn-outline" id="loginOtpRequestBtn">
+                        ورود با کد یکبارمصرف
+                    </button>
+                </form>
+
+                <div class="auth-links">
+                    <p>حساب کاربری ندارید؟</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'customer:customer_register' %}">ثبت‌نام مشتری</a>
+                        <span class="mx-1">|</span>
+                        <a href="{% url 'customer:forwarder_register' %}">ثبت‌نام فورواردر</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- بخش دوم: فرم ورود با کد یکبارمصرف (در ابتدا مخفی) -->
+            <div class="modal-card" id="loginOtpModal">
+                <button type="button" class="back-btn" id="loginBackBtn">
+                    <span>→</span> بازگشت و ویرایش شماره
                 </button>
 
-            </form>
-
-            <div class="auth-links">
-
-                <p>
-                    حساب کاربری ندارید؟
+                <div class="text-center mb-3" style="font-size: 2rem;">🔐</div>
+                <h1 class="auth-title">کد تایید ورود</h1>
+                <p class="auth-subtitle">
+                    کد ۶ رقمی ارسال شده به شماره
+                    <strong id="loginOtpMobileText"></strong>
+                    را وارد کنید.
                 </p>
 
-                <a href="{% url 'customer:customer_register' %}">
-                    ثبت نام مشتری
-                </a>
+                <!-- پیام‌های خطا و اطلاع‌رسانی AJAX -->
+                <div class="alert alert-info hidden" id="loginOtpInfo"></div>
+                <div class="alert alert-danger hidden" id="loginOtpError"></div>
 
-                |
-                
-                <a href="{% url 'customer:forwarder_register' %}">
-                    ثبت نام فورواردر
-                </a>
+                <form id="loginOtpVerifyForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="loginOtpMobile" name="mobile">
 
+                    <!-- باکس‌های ۶ گانه OTP -->
+                    <div class="otp-inputs" data-target="loginOtpCode" dir="ltr">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" data-index="0">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-index="1">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-index="2">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-index="3">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-index="4">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-index="5">
+                    </div>
+
+
+                    <!-- فیلد مخفی برای تجمیع کد -->
+                    <input type="hidden" id="loginOtpCode" name="code">
+
+                    <div class="otp-meta">
+                        <div>زمان باقی‌مانده: <span id="loginTimer">02:00</span></div>
+                        <button type="button" class="link-btn" id="loginResendBtn" disabled>ارسال مجدد کد</button>
+                    </div>
+
+                    <button type="submit" class="auth-btn">تایید و ورود</button>
+                </form>
             </div>
 
         </div>
-
     </div>
-
 </div>
+
+<script>
+    // تعریف URLهای مورد نیاز برای اسکریپت auth-otp.js
+    window.AUTH_URLS = {
+        loginRequestOtp: "{% url 'customer:web_login_request_otp' %}",
+        loginVerifyOtp: "{% url 'customer:web_login_verify_otp' %}"
+    };
+</script>
+
+<script src="{% static 'js/auth-otp.js' %}"></script>
 
 </body>
 </html>
