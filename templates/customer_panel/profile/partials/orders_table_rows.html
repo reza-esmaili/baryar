@@ -1,0 +1,36 @@
+{% load humanize %}
+{% load jformat %}
+
+{% for order in orders %}
+  <tr>
+    <td class="fw-bold">#{{ order.id }}</td>
+    <td>
+      {% if order.origin_city %}
+        {{ order.origin_city.name }}
+      {% else %} - {% endif %}
+    </td>
+    <td>
+      {% if order.destination_port and order.destination_port.city %}
+        {{ order.destination_port.city.name }} - {{ order.destination_port.city.country.name }}
+      {% else %} - {% endif %}
+    </td>
+    <td><span class="badge-transport">{{ order.get_transport_mode_display }}</span></td>
+    <td>{{ order.created_at|jformat:'%Y/%m/%d' }}</td>
+    <td>
+      {% if order.final_price %}
+        {{ order.final_price|floatformat:0|intcomma }} <small>ریال</small>
+      {% else %}
+        <span class="text-muted">در انتظار محاسبه</span>
+      {% endif %}
+    </td>
+    <td>
+      <a href="{% url 'customer:order_detail' order.id %}" class="view-icon" title="مشاهده جزئیات">
+        <i class="fas fa-eye"></i>
+      </a>
+    </td>
+  </tr>
+{% empty %}
+  <tr class="orders-empty-row">
+    <td colspan="7">سفارشی برای نمایش وجود ندارد.</td>
+  </tr>
+{% endfor %}

@@ -719,3 +719,26 @@ body.logout-modal-open {
         font-size: 13px;
     }
 }
+.filters-bar{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.filters-bar select,
+.filters-bar input{
+padding:6px 10px;
+border:1px solid #ddd;
+border-radius:6px;
+}
+
+#clear-filters{
+background:#ef4444;
+color:white;
+border:none;
+padding:6px 10px;
+border-radius:6px;
+cursor:pointer;
+}

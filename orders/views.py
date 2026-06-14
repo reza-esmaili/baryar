@@ -92,49 +92,58 @@ def submit_order(request):
                 return redirect('orders:complete_order_details', order_id=cargo_request.id) 
                 
     return redirect('orders:create_request')
+
 @login_required
 def complete_order_details(request, order_id):
-    cargo_request = get_object_or_404(CargoRequest, id=order_id, customer=request.user, status=OrderStatus.DRAFT)
-    
-    if request.method == 'POST':
+    cargo_request = get_object_or_404(
+        CargoRequest,
+        id=order_id,
+        customer=request.user,
+        status=OrderStatus.DRAFT,
+    )
+
+    if request.method == "POST":
         form = OrderCompletionForm(request.POST, instance=cargo_request, user=request.user)
+
         if form.is_valid():
-            cargo_request = form.save(commit=False)
-    
-            # پر کردن دستی مقادیر قفل شده
-            cargo_request.sender_city = cargo_request.origin_city
-            cargo_request.sender_province = cargo_request.origin_city.province
-            
-            cargo_request.status = 'PENDING'
-            cargo_request.save()
-            form.save_m2m() # ذخیره فیلدهای ManyToMany (cargo_subcategories)
             order = form.save(commit=False)
+
+            # پر کردن دستی مقادیر قفل شده
+            order.sender_city = order.origin_city
+            order.sender_province = order.origin_city.province
+
             order.status = OrderStatus.PENDING
             order.save()
             form.save_m2m()
-            
+
             OrderHistory.objects.create(
                 order=order,
                 changed_by=request.user,
-                note="اطلاعات تکمیلی وارد شد و سفارش برای فورواردر ارسال گردید."
+                note="اطلاعات تکمیلی وارد شد و سفارش برای فورواردر ارسال گردید.",
             )
-            return redirect('orders:create_request') 
+
+            return redirect("customer:order_list")
+
     else:
         form = OrderCompletionForm(instance=cargo_request, user=request.user)
 
-    # --- استخراج کدملی برای ارسال به جاوااسکریپت ---
-    national_id = ''
-    if hasattr(request.user, 'customer_profile'):
+    national_id = ""
+
+    if hasattr(request.user, "customer_profile"):
         national_id = request.user.customer_profile.national_code
-    elif hasattr(request.user, 'customer_company_profile'):
+    elif hasattr(request.user, "customer_company_profile"):
         national_id = request.user.customer_company_profile.national_id
 
-    return render(request, 'customer_panel/complete_request.html', {
-        'form': form,
-        'cargo_request': cargo_request,
-        'user_phone': request.user.mobile,      # ارسال موبایل
-        'user_national_id': national_id,        # ارسال کدملی
-    })
+    return render(
+        request,
+        "customer_panel/complete_request.html",
+        {
+            "form": form,
+            "cargo_request": cargo_request,
+            "user_phone": request.user.mobile,
+            "user_national_id": national_id,
+        },
+    )
 
 def load_cargo_types(request):
     transport_mode = request.GET.get('transport_mode')

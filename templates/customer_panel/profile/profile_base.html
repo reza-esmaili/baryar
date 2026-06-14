@@ -3,20 +3,18 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'customer_panel/css/user_profile.css' %}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  {% block profile_extra_css %}
+  {% endblock %}
 {% endblock %}
 
 {% block content %}
-
   <div class="profile-layout">
-
     <!-- Sidebar -->
     <aside class="profile-sidebar">
-
       <div class="sidebar-user">
-
-        <div class="sidebar-avatar">
-          {{ request.user.first_name|first }}
-        </div>
+        <div class="sidebar-avatar">{{ request.user.first_name|first }}</div>
 
         <h3>
           {{ request.user.first_name }}
@@ -24,51 +22,40 @@
         </h3>
 
         <span>{{ request.user.mobile }}</span>
-
       </div>
 
       <nav class="sidebar-menu">
-
-        <a href="{% url 'customer:profile_dashboard' %}"
-           class="{% if request.resolver_match.url_name == 'profile_dashboard' %}active{% endif %}">
+        <a href="{% url 'customer:profile_dashboard' %}" class="{% if request.resolver_match.url_name == 'profile_dashboard' %}active{% endif %}">
           <i class="fas fa-chart-line"></i>
           داشبورد
         </a>
 
-        <a href="{% url 'customer:profile' %}"
-           class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <a href="{% url 'customer:profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
           <i class="fas fa-user"></i>
           اطلاعات حساب
         </a>
 
-        <a href="{% url 'customer:order_list' %}"
-           class="{% if request.resolver_match.url_name == 'order_list' %}active{% endif %}">
+        <a href="{% url 'customer:order_list' %}" class="{% if request.resolver_match.url_name == 'order_list' %}active{% endif %}">
           <i class="fas fa-box"></i>
           سفارشات من
         </a>
 
-        <a href="{% url 'customer:documents' %}"
-           class="{% if request.resolver_match.url_name == 'documents' %}active{% endif %}">
+        <a href="{% url 'customer:documents' %}" class="{% if request.resolver_match.url_name == 'documents' %}active{% endif %}">
           <i class="fas fa-id-card"></i>
           مدارک هویتی
         </a>
 
-        <a href="{% url 'customer_support:ticket_list' %}"
-           class="{% if 'support' in request.path %}active{% endif %}">
+        <a href="{% url 'customer_support:ticket_list' %}" class="{% if 'support' in request.path %}active{% endif %}">
           <i class="fas fa-headset"></i>
           پشتیبانی
         </a>
 
         <!-- Logout Button -->
-        <button type="button"
-                class="sidebar-logout-btn"
-                onclick="openLogoutModal()">
+        <button type="button" class="sidebar-logout-btn" onclick="openLogoutModal()">
           <i class="fas fa-sign-out-alt"></i>
           خروج از حساب
         </button>
-
       </nav>
-
     </aside>
 
     <!-- Content -->
@@ -77,91 +64,65 @@
 
       {% endblock %}
     </section>
-
   </div>
-
 
   <!-- Logout Modal -->
   <div id="logoutModal" class="logout-modal-overlay" aria-hidden="true">
-
     <div class="logout-modal-box" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
-
-      <button type="button"
-              class="logout-modal-close"
-              onclick="closeLogoutModal()"
-              aria-label="بستن">
-        <i class="fas fa-times"></i>
-      </button>
+      <button type="button" class="logout-modal-close" onclick="closeLogoutModal()" aria-label="بستن"><i class="fas fa-times"></i></button>
 
       <div class="logout-modal-icon">
         <i class="fas fa-sign-out-alt"></i>
       </div>
 
-      <h3 id="logoutModalTitle">
-        خروج از حساب کاربری
-      </h3>
+      <h3 id="logoutModalTitle">خروج از حساب کاربری</h3>
 
-      <p>
-        آیا مطمئن هستید که می‌خواهید از حساب کاربری خود خارج شوید؟
-        برای ورود مجدد باید دوباره شماره موبایل و رمز عبور خود را وارد کنید.
-      </p>
+      <p>آیا مطمئن هستید که می‌خواهید از حساب کاربری خود خارج شوید؟ برای ورود مجدد باید دوباره شماره موبایل و رمز عبور خود را وارد کنید.</p>
 
       <div class="logout-modal-actions">
-
-        <button type="button"
-                class="logout-btn-cancel"
-                onclick="closeLogoutModal()">
-          انصراف
-        </button>
+        <button type="button" class="logout-btn-cancel" onclick="closeLogoutModal()">انصراف</button>
 
         <form method="post" action="{% url 'customer:logout' %}" class="logout-confirm-form">
           {% csrf_token %}
-          <button type="submit" class="logout-btn-confirm">
-            بله، خارج می‌شوم
-          </button>
+          <button type="submit" class="logout-btn-confirm">بله، خارج می‌شوم</button>
         </form>
-
       </div>
-
     </div>
-
   </div>
-
 
   <script>
     function openLogoutModal() {
       const modal = document.getElementById('logoutModal')
-
+    
       if (modal) {
         modal.classList.add('show')
         modal.setAttribute('aria-hidden', 'false')
         document.body.classList.add('logout-modal-open')
       }
     }
-
+    
     function closeLogoutModal() {
       const modal = document.getElementById('logoutModal')
-
+    
       if (modal) {
         modal.classList.remove('show')
         modal.setAttribute('aria-hidden', 'true')
         document.body.classList.remove('logout-modal-open')
       }
     }
-
+    
     document.addEventListener('click', function (event) {
       const modal = document.getElementById('logoutModal')
-
+    
       if (modal && event.target === modal) {
         closeLogoutModal()
       }
     })
-
+    
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') {
         closeLogoutModal()
       }
     })
   </script>
-
 {% endblock %}

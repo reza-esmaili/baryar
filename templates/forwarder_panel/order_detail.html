@@ -1,6 +1,7 @@
 {% extends 'forwarder_panel/base.html' %}
 {% load static %}
 {% load humanize %} 
+{% load jformat %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'forwarder_panel/css/order_detail.css' %}">
@@ -15,37 +16,114 @@
 
 <div class="p-8 bg-[#f4f7fc] min-h-screen rtl font-vazir" dir="rtl">
     <div class="mb-6 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-[#111827]">جزئیات سفارش #{{ order.id }}</h1>
+        <h1 class="text-2xl font-bold text-[#111827]">جزئیات سفارش  {{ order.id }}</h1>
         <a href="{% url 'forwarder_panel:order_list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm transition-colors">بازگشت به لیست</a>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- اطلاعات مشتری و فرستنده -->
-        <div class="bg-white p-6 rounded-xl shadow-sm">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">اطلاعات فرستنده</h3>
+        <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-blue-500">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                اطلاعات فرستنده
+            </h3>
             <div class="space-y-3 text-sm">
                 <p><span class="text-gray-500 w-32 inline-block">نام فرستنده:</span> <span class="font-medium">{{ order.sender_name|default:"-" }}</span></p>
                 <p><span class="text-gray-500 w-32 inline-block">کد ملی:</span> <span class="font-medium">{{ order.sender_national_id|default:"-" }}</span></p>
                 <p><span class="text-gray-500 w-32 inline-block">موبایل:</span> <span class="font-medium">{{ order.sender_phone|default:"-" }}</span></p>
-                <p><span class="text-gray-500 w-32 inline-block">آدرس مبدا:</span> <span class="font-medium">{{ order.origin_city.name }} - {{ order.sender_address|default:"-" }}</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">استان :</span> <span class="font-medium"> {{ order.origin_city.province.name }}</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">شهر :</span> <span class="font-medium">{{ order.origin_city.name }}</span></p>
+                <p><span class="text-gray-500 w-32 inline-block">آدرس مبدا:</span> <span class="font-medium">{{ order.sender_address|default:"-" }}</span></p>
             </div>
         </div>
 
         <!-- اطلاعات کالا و حمل -->
-        <div class="bg-white p-6 rounded-xl shadow-sm">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">اطلاعات محموله و حمل</h3>
+        <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-green-500">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+                اطلاعات محموله و حمل
+            </h3>
             <div class="space-y-3 text-sm">
                 <p><span class="text-gray-500 w-32 inline-block">روش حمل:</span> <span class="font-medium">{{ order.get_transport_mode_display }}</span></p>
-                <p><span class="text-gray-500 w-32 inline-block">پورت مقصد:</span> <span class="font-medium">{{ order.destination_port.name }}</span></p>
+                
+                <!-- اصلاح شده: نمایش کشور و شهر مقصد -->
+                <p><span class="text-gray-500 w-32 inline-block">مقصد:</span> 
+                    <span class="font-medium">
+                        {{ order.destination_port.city.country.name }} / 
+                        {{ order.destination_port.city.name }} / 
+                        {{ order.destination_port.name }}
+                    </span>
+                </p>
+
                 <p><span class="text-gray-500 w-32 inline-block">نوع کالا:</span> <span class="font-medium">{{ order.cargo_type.name }}</span></p>
-                <p><span class="text-gray-500 w-32 inline-block">وزن نهایی:</span> <span class="font-medium">{{ order.chargeable_weight|default:order.actual_weight }} کلیوگرم</span></p>
+                
+                <!-- جدید: نمایش زیردسته‌ها -->
+                {% if order.cargo_subcategories.exists %}
+                <p><span class="text-gray-500 w-32 inline-block">زیردسته‌ها:</span> 
+                    <span class="inline-flex flex-wrap gap-1">
+                        {% for sub in order.cargo_subcategories.all %}
+                            <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs border border-blue-100">{{ sub.name }}</span>
+                        {% endfor %}
+                    </span>
+                </p>
+                {% endif %}
+
+                <p><span class="text-gray-500 w-32 inline-block">وزن نهایی:</span> <span class="font-medium">{{ order.chargeable_weight|default:order.actual_weight }} کیلوگرم</span></p>
                 <p><span class="text-gray-500 w-32 inline-block">هزینه محاسبه شده:</span> <span class="font-medium text-green-600 font-bold">{{ order.final_price|intcomma }} ریال</span></p>
+                
+                <p>
+                    <span class="text-gray-500 w-32 inline-block">تاریخ ثبت سفارش:</span> 
+                    <span class="font-medium text-blue-600">
+                        {{ order.created_at|jformat:"%Y/%m/%d" }} 
+                        <span class="text-gray-400 text-xs mr-1">- ساعت {{ order.created_at|time:"H:i" }}</span>
+                    </span>
+                </p>
+
+
             </div>
         </div>
 
-        <!-- مدیریت وضعیت -->
+        <!-- جدید: جدول ابعاد بار -->
+        {% if order.dimensions.exists %}
         <div class="bg-white p-6 rounded-xl shadow-sm md:col-span-2">
-            <h3 class="text-lg font-bold mb-4 border-b pb-2">تغییر وضعیت سفارش</h3>
+            <h3 class="text-lg font-bold mb-4 border-b pb-2">لیست ابعاد و تعداد بسته کالا</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-right">
+                    <thead class="bg-gray-50 text-gray-600 font-bold">
+                        <tr>
+                            <th class="px-4 py-3 border-b">طول (cm)</th>
+                            <th class="px-4 py-3 border-b">عرض (cm)</th>
+                            <th class="px-4 py-3 border-b">ارتفاع (cm)</th>
+                            <th class="px-4 py-3 border-b">تعداد</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        {% for item in order.dimensions.all %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3">{{ item.length }}</td>
+                            <td class="px-4 py-3">{{ item.width }}</td>
+                            <td class="px-4 py-3">{{ item.height }}</td>
+                            <td class="px-4 py-3">{{ item.quantity }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- مدیریت وضعیت -->
+        <div class="bg-white p-6 rounded-xl shadow-sm md:col-span-2 border-t-4 border-amber-400">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                تغییر وضعیت سفارش
+            </h3>
             <form method="POST" class="space-y-4">
                 {% csrf_token %}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -54,7 +132,12 @@
                         <select name="status" class="w-full text-sm border-gray-300 rounded-lg shadow-sm py-2 px-3 border focus:ring-blue-500 focus:border-blue-500">
                             {% for st_val, st_name in statuses %}
                                 {% if st_val != 'draft' %}
-                                    <option value="{{ st_val }}" {% if order.status == st_val %}selected{% endif %}>{{ st_name }}</option>
+                                    <option value="{{ st_val }}"
+                                        {% if order.status == st_val %}
+                                            selected
+                                        {% endif %}>
+                                        {{ st_name }}
+                                    </option>
                                 {% endif %}
                             {% endfor %}
                         </select>
@@ -67,7 +150,7 @@
                 
                 <div class="flex gap-3 justify-end pt-4 border-t mt-4">
                     <a href="{% url 'forwarder_panel:order_list' %}" class="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">انصراف</a>
-                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">ذخیره تغییرات</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm font-bold">ذخیره تغییرات</button>
                 </div>
             </form>
         </div>

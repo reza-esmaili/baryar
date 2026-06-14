@@ -10,7 +10,7 @@
 {% block profile_content %}
   <div class="content-card">
     <div class="content-header">
-      <h2>سفارش #{{ order.id }}</h2>
+      <h2>سفارش شماره {{ order.id }}</h2>
 
       <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
     </div>
@@ -22,18 +22,8 @@
       </div>
 
       <div class="info-box">
-        <label>نوع کالا</label>
-        <strong>{{ order.cargo_type }}</strong>
-      </div>
-
-      <div class="info-box">
-        <label>وزن واقعی</label>
-        <strong>{{ order.actual_weight }} KG</strong>
-      </div>
-
-      <div class="info-box">
-        <label>شهر مبدا</label>
-        <strong>{{ order.origin_city }}</strong>
+        <label>کشور و شهر مقصد</label>
+        <strong>{{ order.destination_port.city.name }} - {{ order.destination_port.city.country.name }}</strong>
       </div>
 
       <div class="info-box">
@@ -42,8 +32,33 @@
       </div>
 
       <div class="info-box">
+        <label>شهر مبدا</label>
+        <strong>{{ order.origin_city }}</strong>
+      </div>
+
+      <div class="info-box">
+        <label>دسته بندی کالا</label>
+        <strong>{{ order.cargo_type }}</strong>
+      </div>
+      {% if order.cargo_subcategories.exists %}
+        <div class="info-box">
+          <label>نوع کالا</label>
+          <strong>
+            {% for sub in order.cargo_subcategories.all %}
+              {{ sub.name }}{% if not forloop.last %}، {% endif %}
+            {% endfor %}
+          </strong>
+        </div>
+      {% endif %}
+
+      <div class="info-box">
+        <label>وزن واقعی</label>
+        <strong>{{ order.actual_weight }} کیلوگرم</strong>
+      </div>
+
+      <div class="info-box">
         <label>تاریخ ثبت</label>
-        <strong>{{ order.created_at|jformat:"%Y/%m/%d - %H:%M" }}</strong>
+        <strong>{{ order.created_at|jformat:'%Y/%m/%d - %H:%M' }}</strong>
       </div>
 
       {% if order.container_size %}
@@ -76,7 +91,7 @@
     </div>
   </div>
 
-  {% if order.dimensions.all %}
+  {% if order.dimensions.exists %}
     <div class="content-card">
       <div class="content-header">
         <h2>ابعاد بار</h2>
@@ -86,9 +101,9 @@
         <table class="orders-table">
           <thead>
             <tr>
-              <th>طول</th>
-              <th>عرض</th>
-              <th>ارتفاع</th>
+              <th>طول (cm)</th>
+              <th>عرض (cm)</th>
+              <th>ارتفاع (cm)</th>
               <th>تعداد</th>
             </tr>
           </thead>
@@ -126,7 +141,7 @@
             </strong>
           </div>
 
-          <small>{{ item.created_at|jformat:"%Y/%m/%d - %H:%M"}}</small>
+          <small>{{ item.created_at|jformat:'%Y/%m/%d - %H:%M' }}</small>
         </div>
       {% endfor %}
     </div>

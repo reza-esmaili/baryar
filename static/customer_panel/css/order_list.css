@@ -1,0 +1,256 @@
+/* ===================================
+   Customer Order List Page
+=================================== */
+
+.orders-card {
+  overflow: hidden;
+}
+
+.orders-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.orders-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+/* ===================================
+   Filters
+=================================== */
+
+.orders-filters-wrapper {
+  margin-bottom: 24px;
+}
+
+.filters-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.filter-field {
+  position: relative;
+  min-width: 150px;
+}
+
+.filter-field select,
+.filter-field input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #374151;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.filter-field select {
+  cursor: pointer;
+}
+
+.filter-field select:focus,
+.filter-field input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.filter-field select:hover,
+.filter-field input:hover {
+  border-color: #9ca3af;
+}
+
+.filter-date-field {
+  min-width: 165px;
+}
+
+/* Clear Filters Button */
+
+.clear-filters-btn {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 15px;
+}
+
+.clear-filters-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* ===================================
+   Table
+=================================== */
+
+.orders-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.orders-table {
+  min-width: 850px;
+}
+
+.orders-table th {
+  white-space: nowrap;
+}
+
+.orders-table td {
+  vertical-align: middle;
+}
+
+/* Loading state for ajax */
+
+.orders-table-loading {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* ===================================
+   View Details Icon
+=================================== */
+
+.view-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #eff6ff;
+  color: #2563eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.view-icon:hover {
+  background: #2563eb;
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.view-icon svg,
+.view-icon i {
+  width: 18px;
+  height: 18px;
+  font-size: 15px;
+}
+
+/* ===================================
+   Empty State
+=================================== */
+
+.orders-empty-row td {
+  text-align: center;
+  padding: 32px 12px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* ===================================
+   Responsive
+=================================== */
+
+@media (max-width: 992px) {
+  .filter-field {
+    flex: 1 1 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-field {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .clear-filters-btn {
+    width: 100%;
+  }
+
+  .orders-header h2 {
+    font-size: 20px;
+  }
+}
+/* عریض کردن فیلترها به اندازه جدول */
+.orders-filters-wrapper {
+    width: 100% !important;
+    display: block !important;
+}
+
+.filters-bar {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 15px 0 !important; /* حذف پدینگ اضافی برای هم‌ترازی با لبه جدول */
+    background: transparent !important;
+    border: none !important;
+}
+
+.filter-field {
+    flex: 1 !important; /* هر فیلد فضای مساوی می‌گیرد */
+    margin: 0 5px !important;
+}
+
+.filter-field:first-child { margin-right: 0 !important; }
+.filter-field:last-child { margin-left: 0 !important; }
+
+/* آیکون مشاهده جزئیات با رنگ آبی قالب */
+.view-icon {
+    width: 38px !important;
+    height: 38px !important;
+    background: #2563eb !important; /* رنگ آبی موجود در دکمه‌های قالب شما */
+    color: #ffffff !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+}
+
+.view-icon i {
+    font-size: 16px !important;
+}
+
+.view-icon:hover {
+    background: #1d4ed8 !important; /* آبی تیره تر هنگام هاور */
+    transform: scale(1.1);
+}
+
+/* دکمه حذف فیلتر */
+.clear-filters-btn:hover {
+    color: #b91c1c !important;
+    transform: scale(1.2);
+}
+

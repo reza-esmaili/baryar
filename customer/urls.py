@@ -18,15 +18,20 @@ urlpatterns = [
     path("auth/register/verify-otp/", views.web_register_verify_otp, name="web_register_verify_otp"),
     path("auth/register/cancel/", views.web_register_cancel, name="web_register_cancel"),
 
+    # Profile
     path("profile/", views.profile_view, name="profile"),
     path("profile/dashboard/", views.profile_dashboard, name="profile_dashboard"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
 
+    # Orders in customer panel
     path("profile/orders/", views.order_list, name="order_list"),
+    path("profile/orders/filter/", views.filter_orders, name="filter_orders"),
     path("profile/orders/<int:pk>/", views.order_detail, name="order_detail"),
 
+    # Documents
     path("profile/documents/", views.document_list, name="documents"),
     path("profile/documents/upload/", views.upload_document, name="upload_document"),
-    path("profile/support/", include(('support.urls', 'support'), namespace='customer_support')),
 
+    # Support
+    path("profile/support/", include(("support.urls", "support"), namespace="customer_support")),
 ]

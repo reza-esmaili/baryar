@@ -68,12 +68,12 @@
 
             <div class="summary-item">
                 <span>مبدا</span>
-                <strong>{{ cargo_request.origin }}</strong>
+                <strong>{{ cargo_request.origin_city.name }}</strong>
             </div>
 
             <div class="summary-item">
                 <span>مقصد</span>
-                <strong>{{ cargo_request.destination }}</strong>
+                <strong>{{ cargo_request.destination_port.name }}</strong>
             </div>
 
             <div class="summary-item">
@@ -83,7 +83,7 @@
 
             <div class="summary-item">
                 <span>وزن محاسبه شده</span>
-                <strong>{{ cargo_request.chargeable_weight }} kg</strong>
+                <strong>{{ cargo_request.chargeable_weight }} کیلوگرم</strong>
             </div>
 
             <div class="summary-item">

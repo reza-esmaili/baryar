@@ -1,36 +1,148 @@
 {% extends 'customer_panel/profile/profile_base.html' %}
+{% load static %}
+{% load humanize %}
+{% load jformat %}
+
+{% block profile_extra_css %}
+  <link rel="stylesheet" href="{% static 'customer_panel/css/order_list.css' %}" />
+
+{% endblock %}
 
 {% block profile_content %}
-  <div class="content-card">
-    <h2>سفارشات من</h2>
+  <div class="content-card orders-card">
+    <div class="orders-header">
+      <h2>سفارشات من</h2>
+    </div>
 
-    <table class="modern-table">
-      <thead>
-        <tr>
-          <th>شماره</th>
-          <th>نوع کالا</th>
-          <th>وضعیت</th>
-          <th>عملیات</th>
-        </tr>
-      </thead>
+    <div class="orders-filters-wrapper" style="width: 100%;">
+      <div class="filters-bar" style="display: flex; width: 100%; gap: 10px; align-items: center;">
+        <div class="filter-field" style="flex: 1;">
+          <select id="filter-origin" style="width: 100%;">
+            <option value="">همه مبداها</option>
+            {% for city in origin_cities %}
+              <option value="{{ city.id }}">{{ city.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
 
-      <tbody>
-        {% for order in orders %}
+        <div class="filter-field" style="flex: 1;">
+          <select id="filter-destination" style="width: 100%;">
+            <option value="">همه مقصدها</option>
+            {% for city in destination_cities %}
+              <option value="{{ city.id }}">{{ city.country.name }} - {{ city.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-field" style="flex: 1;">
+          <select id="filter-transport" style="width: 100%;">
+            <option value="">همه روش‌های حمل</option>
+            <option value="air">هوایی</option>
+            <option value="sea_lcl">دریایی LCL</option>
+            <option value="sea_fcl">دریایی FCL</option>
+            <option value="land">زمینی</option>
+          </select>
+        </div>
+
+        <div class="filter-field filter-date-field" style="flex: 1;">
+          <input type="date" id="filter-date" style="width: 100%;" />
+        </div>
+
+        <!-- دکمه حذف فیلتر بدون بک‌گراند با آیکون ضربدر قرمز -->
+        <button type="button" id="clear-filters" class="clear-filters-btn" title="حذف فیلترها" style="background: none !important; border: none; color: #ef4444; cursor: pointer; padding: 5px;"><i class="fas fa-times-circle" style="font-size: 20px;"></i></button>
+      </div>
+    </div>
+
+    <div class="orders-table-wrapper">
+      <table class="modern-table orders-table">
+        <thead>
           <tr>
-            <td>#{{ order.id }}</td>
-
-            <td>{{ order.cargo_type }}</td>
-
-            <td>
-              <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
-            </td>
-
-            <td>
-              <a href="{% url 'customer:order_detail' order.id %}" class="btn-secondary">مشاهده</a>
-            </td>
+            <th>شماره</th>
+            <th>مبدا</th>
+            <th>مقصد</th>
+            <th>نوع حمل</th>
+            <th>تاریخ</th>
+            <th>مبلغ</th>
+            <th>جزئیات</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody id="orders-table">
+          {% include 'customer_panel/profile/partials/orders_table_rows.html' %}
+        </tbody>
+      </table>
+    </div>
   </div>
+
+  <script>
+    const filterUrl = "{% url 'customer:filter_orders' %}"
+    
+    function loadOrders() {
+      const origin = document.getElementById('filter-origin').value
+      const destination = document.getElementById('filter-destination').value
+      const transport = document.getElementById('filter-transport').value
+      const date = document.getElementById('filter-date').value
+    
+      const tableBody = document.getElementById('orders-table')
+      tableBody.classList.add('orders-table-loading')
+    
+      const params = new URLSearchParams()
+    
+      if (origin) {
+        params.append('origin', origin)
+      }
+    
+      if (destination) {
+        params.append('destination', destination)
+      }
+    
+      if (transport) {
+        params.append('transport', transport)
+      }
+    
+      if (date) {
+        params.append('date', date)
+      }
+    
+      fetch(`${filterUrl}?${params.toString()}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('خطا در دریافت سفارش‌ها')
+          }
+    
+          return response.text()
+        })
+        .then((data) => {
+          tableBody.innerHTML = data
+        })
+        .catch((error) => {
+          console.error(error)
+          tableBody.innerHTML = `
+                  <tr class="orders-empty-row">
+                    <td colspan="7">خطا در دریافت اطلاعات سفارش‌ها.</td>
+                  </tr>
+                `
+        })
+        .finally(() => {
+          tableBody.classList.remove('orders-table-loading')
+        })
+    }
+    
+    document.querySelectorAll('#filter-origin, #filter-destination, #filter-transport, #filter-date').forEach((el) => {
+      el.addEventListener('change', loadOrders)
+    })
+    
+    document.getElementById('clear-filters').addEventListener('click', function () {
+      document.getElementById('filter-origin').value = ''
+      document.getElementById('filter-destination').value = ''
+      document.getElementById('filter-transport').value = ''
+      document.getElementById('filter-date').value = ''
+    
+      loadOrders()
+    })
+  </script>
 {% endblock %}

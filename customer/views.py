@@ -1,9 +1,11 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login , logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
+from locations.models import City, DestinationCity
 
 from accounts.models import User, CustomerProfile, OTPCode
 from accounts.services import request_otp, verify_otp, SMSIRException
@@ -258,6 +260,7 @@ def web_register_verify_otp(request):
         }
     )
 
+
 @login_required
 @require_POST
 def logout_view(request):
@@ -283,7 +286,6 @@ def profile_view(request):
 
     user = request.user
 
-    # اگر برای کاربر CustomerProfile وجود نداشت، ساخته می‌شود.
     customer_profile, created = CustomerProfile.objects.get_or_create(user=user)
 
     company_profile = getattr(user, "customer_company_profile", None)
@@ -302,32 +304,23 @@ def profile_view(request):
             messages.success(request, "اطلاعات پروفایل با موفقیت به‌روزرسانی شد.")
             return redirect("customer:profile")
         else:
-            # این دو خط برای این است که در ترمینال VS Code ببینید دقیقا چه فیلدی ایراد دارد
             print("--- User Form Errors ---", user_form.errors)
             print("--- Profile Form Errors ---", profile_form.errors)
-            
-            messages.error(request, "خطایی در فرم رخ داده است. لطفاً فیلدها را بررسی کنید.")
 
+            messages.error(request, "خطایی در فرم رخ داده است. لطفاً فیلدها را بررسی کنید.")
 
     else:
         user_form = UserProfileForm(instance=user)
         profile_form = CustomerProfileForm(instance=customer_profile)
 
     context = {
-        # اطلاعات اصلی پروفایل
         "customer_profile": customer_profile,
         "company_profile": company_profile,
         "business_info": business_info,
-
-        # فرم‌های ویرایش پروفایل
         "user_form": user_form,
         "profile_form": profile_form,
-
-        # مدارک و سفارش‌ها
         "documents": documents,
         "recent_orders": orders,
-
-        # آمارها
         "orders_count": user.cargo_requests.count(),
         "pending_orders": user.cargo_requests.filter(status="pending").count(),
         "completed_orders": user.cargo_requests.filter(status="completed").count(),
@@ -365,7 +358,22 @@ def profile_dashboard(request):
 
 @login_required
 def order_detail(request, pk):
-    order = get_object_or_404(CargoRequest, pk=pk, customer=request.user)
+    order = get_object_or_404(
+        CargoRequest.objects.select_related(
+            "cargo_type",
+            "origin_city",
+            "origin_city__province",
+            "destination_port",
+            "destination_port__city",
+            "destination_port__city__country",
+            "selected_rate",
+        ).prefetch_related(
+            "cargo_subcategories",
+            "dimensions",
+        ),
+        pk=pk,
+        customer=request.user,
+    )
 
     return render(
         request,
@@ -376,19 +384,93 @@ def order_detail(request, pk):
     )
 
 
+def get_customer_orders_queryset(user):
+    """
+    Queryset پایه سفارش‌های مشتری با select_related های لازم
+    برای جلوگیری از N+1 Query.
+
+    ساختار صحیح مدل‌های location در پروژه:
+
+    مبدا:
+        CargoRequest.origin_city -> City -> Province
+
+    مقصد:
+        CargoRequest.destination_port -> Port -> DestinationCity -> Country
+    """
+
+    return CargoRequest.objects.filter(
+        customer=user
+    ).select_related(
+        "cargo_type",
+        "origin_city",
+        "origin_city__province",
+        "destination_port",
+        "destination_port__city",
+        "destination_port__city__country",
+        "selected_rate",
+    ).order_by("-created_at")
+
+
 @login_required
 def order_list(request):
-    orders = request.user.cargo_requests.select_related(
-        "cargo_type",
-        "destination_port",
-    ).order_by("-created_at")
+    """
+    لیست سفارش‌های مشتری.
+
+    نکته مهم:
+    - origin_city از مدل City می‌آید و به Province وصل است.
+    - destination_port.city از مدل DestinationCity می‌آید و به Country وصل است.
+
+    بنابراین:
+    - برای شهرهای مبدا باید از City + province استفاده شود.
+    - برای شهرهای مقصد باید از DestinationCity + country استفاده شود.
+    """
+
+    orders = get_customer_orders_queryset(request.user)
+
+    origin_city_ids = orders.exclude(
+        origin_city_id__isnull=True
+    ).values_list(
+        "origin_city_id",
+        flat=True,
+    ).distinct()
+
+    origin_cities = City.objects.filter(
+        id__in=origin_city_ids,
+        is_active=True,
+    ).select_related(
+        "province",
+    ).order_by(
+        "province__name",
+        "name",
+    )
+
+    destination_city_ids = orders.exclude(
+        destination_port__city_id__isnull=True
+    ).values_list(
+        "destination_port__city_id",
+        flat=True,
+    ).distinct()
+
+    destination_cities = DestinationCity.objects.filter(
+        id__in=destination_city_ids,
+        is_active=True,
+    ).select_related(
+        "country",
+    ).order_by(
+        "country__name",
+        "name",
+    )
+
+    context = {
+        "orders": orders,
+        "origin_cities": origin_cities,
+        "destination_cities": destination_cities,
+    }
 
     return render(
         request,
         "customer_panel/profile/order_list.html",
-        {
-            "orders": orders,
-        },
+        context,
     )
 
 
@@ -428,5 +510,45 @@ def upload_document(request):
         "customer_panel/profile/upload_document.html",
         {
             "form": form,
+        },
+    )
+
+
+@login_required
+def filter_orders(request):
+    """
+    فیلتر Ajax سفارش‌ها.
+
+    پارامترهای GET:
+    - origin: شناسه City برای مبدا
+    - destination: شناسه DestinationCity برای مقصد
+    - transport: نوع حمل
+    - date: تاریخ ایجاد سفارش با فرمت YYYY-MM-DD
+    """
+
+    origin_id = request.GET.get("origin")
+    destination_id = request.GET.get("destination")
+    transport = request.GET.get("transport")
+    date_str = request.GET.get("date")
+
+    orders = get_customer_orders_queryset(request.user)
+
+    if origin_id:
+        orders = orders.filter(origin_city_id=origin_id)
+
+    if destination_id:
+        orders = orders.filter(destination_port__city_id=destination_id)
+
+    if transport:
+        orders = orders.filter(transport_mode=transport)
+
+    if date_str:
+        orders = orders.filter(created_at__date=date_str)
+
+    return render(
+        request,
+        "customer_panel/profile/partials/orders_table_rows.html",
+        {
+            "orders": orders,
         },
     )
