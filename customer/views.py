@@ -26,9 +26,10 @@ def redirect_based_on_role(user):
     ]
 
     if user.role in panel_roles:
-        return redirect("forwarder_panel:branch_list")
+        return redirect("forwarder_panel:dashboard")
 
     return redirect("/")
+
 
 
 def login_view(request):
@@ -223,7 +224,7 @@ def web_register_verify_otp(request):
     login(request, user)
 
     if user.role == User.Role.FORWARDER_ADMIN:
-        redirect_url = "/forwarder-panel/"
+        redirect_url = "/panel/"
     else:
         redirect_url = "/"
 

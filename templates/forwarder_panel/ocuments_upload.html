@@ -1,0 +1,221 @@
+{% extends "forwarder_panel/base.html" %}
+{% load static %}
+
+{% block title %}تکمیل مدارک و احراز هویت شرکت{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verification-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        padding: 30px;
+        margin-top: 20px;
+    }
+    .role-selector-wrapper {
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+    .role-option {
+        display: inline-block;
+        padding: 15px 30px;
+        margin: 10px;
+        background: #fff;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .role-option.active {
+        border-color: #0d6efd;
+        background: #e6f0ff;
+        color: #0d6efd;
+    }
+    .hidden-fields {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="verification-card">
+        <h2 class="mb-4">تکمیل ثبت‌نام و احراز هویت فورواردر</h2>
+        
+        <!-- نمایش اطلاعات ثبت‌نامی اولیه -->
+        <div class="alert alert-info">
+            <h5>اطلاعات ثبت‌نام کننده اولیه:</h5>
+            <p class="mb-1"><strong>نام و نام خانوادگی:</strong> {{ user_info.first_name }} {{ user_info.last_name }}</p>
+            <p class="mb-0"><strong>شماره موبایل:</strong> {{ user_info.mobile }}</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="verificationForm">
+            {% csrf_token %}
+            
+            <!-- مقدار نقش که توسط کلیک/درگ تغییر پیدا می‌کند -->
+            <input type="hidden" name="user_role_in_company" id="id_user_role_in_company" value="ceo">
+
+            <!-- بخش انتخاب سمت (نماینده / مدیر عامل) -->
+            <div class="role-selector-wrapper">
+                <label class="form-label d-block mb-3">نقش خود را در شرکت حمل و نقل انتخاب کنید:</label>
+                <div class="role-option active" data-role="ceo">
+                    <i class="fas fa-user-tie mb-2 d-block fa-2x"></i>
+                    من مدیر عامل شرکت هستم
+                </div>
+                <div class="role-option" data-role="representative">
+                    <i class="fas fa-id-card-alt mb-2 d-block fa-2x"></i>
+                    من نماینده شرکت هستم
+                </div>
+            </div>
+
+            <!-- اطلاعات شرکت -->
+            <h4 class="mb-3 border-bottom pb-2">اطلاعات شرکت حمل و نقل</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>نام شرکت</label>
+                    <input type="text" name="company_name" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>نوع شرکت</label>
+                    <select name="company_type" class="form-select" required>
+                        <option value="private_joint_stock">سهامی خاص</option>
+                        <option value="public_joint_stock">سهامی عام</option>
+                        <option value="limited_liability">مسئولیت محدود</option>
+                        <option value="cooperative">تعاونی</option>
+                        <option value="general_partnership">تضامنی</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>شناسه ملی شرکت</label>
+                    <input type="text" name="national_id" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>شماره ثبت</label>
+                    <input type="text" name="registration_number" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>تلفن تماس شرکت</label>
+                    <input type="text" name="phone" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>ایمیل شرکت</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>کد پستی</label>
+                    <input type="text" name="postal_code" class="form-control" required>
+                </div>
+                <div class="col-12 mb-3">
+                    <label>آدرس شرکت</label>
+                    <textarea name="address" class="form-control" rows="3" required></textarea>
+                </div>
+            </div>
+
+            <!-- بخش پویا: اطلاعات مدیر عامل (فقط اگر کاربر نماینده باشد نمایش داده می‌شود) -->
+            <div id="ceo_info_section" class="hidden-fields">
+                <h4 class="mb-3 border-bottom pb-2 text-primary mt-4">اطلاعات مدیر عامل شرکت</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>نام مدیر عامل</label>
+                        <input type="text" name="ceo_first_name" id="id_ceo_first_name" class="form-control">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>نام خانوادگی مدیر عامل</label>
+                        <input type="text" name="ceo_last_name" id="id_ceo_last_name" class="form-control">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>کد ملی مدیر عامل</label>
+                        <input type="text" name="ceo_national_code" id="id_ceo_national_code" class="form-control">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>شماره موبایل مدیر عامل</label>
+                        <input type="text" name="ceo_mobile" id="id_ceo_mobile" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- بخش آپلود مدارک -->
+            <h4 class="mb-3 border-bottom pb-2 mt-4">مستندات و فایل‌ها</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>آگهی تاسیس (PDF/تصویر)</label>
+                    <input type="file" name="establishment_notice" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>اساسنامه شرکت</label>
+                    <input type="file" name="articles_of_association" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>آخرین تغییرات روزنامه رسمی</label>
+                    <input type="file" name="latest_changes" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>کارت ملی مدیر عامل</label>
+                    <input type="file" name="ceo_national_card" class="form-control" required>
+                </div>
+                <!-- بخش پویا: کارت ملی نماینده -->
+                <div class="col-md-6 mb-3 hidden-fields" id="rep_card_section">
+                    <label>کارت ملی نماینده شرکت (شما)</label>
+                    <input type="file" name="representative_national_card" id="id_rep_card" class="form-control">
+                </div>
+            </div>
+
+            <div class="text-start mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">ثبت نهایی و ارسال مدارک</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.role-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // تغییر کلاس فعال
+            document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            
+            const selectedRole = this.getAttribute('data-role');
+            document.getElementById('id_user_role_in_company').value = selectedRole;
+            
+            // نمایش/مخفی کردن فیلدهای مدیرعامل و نماینده بر اساس انتخاب
+            const ceoSection = document.getElementById('ceo_info_section');
+            const repCardSection = document.getElementById('rep_card_section');
+            
+            const ceoFirstName = document.getElementById('id_ceo_first_name');
+            const ceoLastName = document.getElementById('id_ceo_last_name');
+            const ceoNatCode = document.getElementById('id_ceo_national_code');
+            const ceoMobile = document.getElementById('id_ceo_mobile');
+            const repCard = document.getElementById('id_rep_card');
+            
+            if (selectedRole === 'representative') {
+                ceoSection.style.display = 'block';
+                repCardSection.style.display = 'block';
+                
+                // اجباری کردن فیلدها در فرانت‌اند
+                ceoFirstName.setAttribute('required', 'required');
+                ceoLastName.setAttribute('required', 'required');
+                ceoNatCode.setAttribute('required', 'required');
+                ceoMobile.setAttribute('required', 'required');
+                repCard.setAttribute('required', 'required');
+            } else {
+                ceoSection.style.display = 'none';
+                repCardSection.style.display = 'none';
+                
+                // برداشتن حالت اجباری
+                ceoFirstName.removeAttribute('required');
+                ceoLastName.removeAttribute('required');
+                ceoNatCode.removeAttribute('required');
+                ceoMobile.removeAttribute('required');
+                repCard.removeAttribute('required');
+            }
+        });
+    });
+</script>
+{% endblock %}

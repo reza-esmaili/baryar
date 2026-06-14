@@ -1,4 +1,5 @@
 import hashlib
+import os
 import random
 import re
 
@@ -262,13 +263,37 @@ class CustomerBusinessInfo(TimeStampedModel):
         verbose_name_plural = "اطلاعات تجاری مشتریان"
 
 
+def identity_document_upload_to(instance, filename):
+    ext = os.path.splitext(filename)[1]
+
+    if instance.company:
+        company_name = instance.company.company_name.strip()
+        safe_company_name = re.sub(r'[\\/:*?"<>|]+', "_", company_name)
+        safe_company_name = re.sub(r"\s+", "_", safe_company_name)
+        return f"identity_docs/{safe_company_name}/{instance.doc_type}{ext}"
+
+    mobile = instance.user.mobile if instance.user_id else "unknown"
+    safe_mobile = re.sub(r'[\\/:*?"<>|]+', "_", mobile)
+    return f"identity_docs/{safe_mobile}/{instance.doc_type}{ext}"
+
+
 class IdentityDocument(TimeStampedModel):
     class DocType(models.TextChoices):
-        NATIONAL_CARD = "national_card", "کارت ملی"
+        NATIONAL_CARD = "national_card", "کارت ملی نماینده"
         BIRTH_CERTIFICATE = "birth_certificate", "شناسنامه"
         ESTABLISHMENT_NOTICE = "establishment_notice", "آگهی تاسیس"
         ARTICLES_OF_ASSOCIATION = "articles_of_association", "اساسنامه"
+        LATEST_CHANGES = "latest_changes", "آخرین تغییرات روزنامه رسمی"
         CEO_NATIONAL_CARD = "ceo_national_card", "کارت ملی مدیر عامل"
+
+    company = models.ForeignKey(
+        "forwarders.ForwarderCompany",
+        on_delete=models.CASCADE,
+        related_name="identity_documents",
+        null=True,
+        blank=True,
+        verbose_name="شرکت فورواردر",
+    )
 
     class Status(models.TextChoices):
         PENDING = "pending", "در انتظار بررسی"
@@ -277,7 +302,7 @@ class IdentityDocument(TimeStampedModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="documents")
     doc_type = models.CharField(max_length=30, choices=DocType.choices)
-    file = models.FileField(upload_to="identity_docs/%Y/%m/")
+    file = models.FileField(upload_to=identity_document_upload_to)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     admin_note = models.TextField(blank=True)
 
