@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.urls import path, include
 
 app_name = 'forwarder_panel'
 
@@ -36,4 +37,5 @@ urlpatterns = [
 
     path('reports/sales-chart-data/', views.get_sales_chart_data, name='get_sales_chart_data'),
     path('reports/', views.report_view, name='report_page'),
+    path('support/', include(('support.urls', 'support'), namespace='forwarder_support')),
 ]

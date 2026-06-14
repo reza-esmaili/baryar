@@ -1,0 +1,41 @@
+{% for ticket in tickets %}
+  <tr class="{% if ticket.unread_for_user %}ticket-unread{% endif %}">
+    <td>#{{ ticket.number }}</td>
+
+    <td>
+      <strong>{{ ticket.subject }}</strong>
+    </td>
+
+    <td>{{ ticket.department.name }}</td>
+
+    <td>
+      <span class="priority-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span>
+    </td>
+
+    <td>
+      <span class="status-badge
+{% if ticket.status == 'open' %}
+          status-open
+
+        {% elif ticket.status == 'answered' %}
+          status-answered
+
+        {% else %}
+          status-closed
+
+        {% endif %}">
+        {{ ticket.get_status_display }}
+      </span>
+    </td>
+
+    <td>{{ ticket.updated_at|date:'Y/m/d H:i' }}</td>
+
+    <td>
+      <a href="{% url 'forwarder_support:ticket_detail' ticket.pk %}" class="btn btn-sm btn-outline-primary">مشاهده</a>
+    </td>
+  </tr>
+{% empty %}
+  <tr>
+    <td colspan="7" class="text-center text-muted py-4">تیکتی یافت نشد</td>
+  </tr>
+{% endfor %}

@@ -1,0 +1,35 @@
+.ticket-create-card{
+max-width:900px;
+margin:auto;
+}
+
+.ticket-create-card .form-label{
+font-weight:600;
+font-size:14px;
+}
+
+.ticket-create-card textarea{
+min-height:140px;
+resize:vertical;
+}
+
+.ticket-create-card select,
+.ticket-create-card input,
+.ticket-create-card textarea{
+border-radius:8px;
+}
+
+.ticket-create-card .btn{
+min-width:120px;
+}
+.ticket-create-card {
+    max-width: 900px;
+}
+
+.ticket-create-card label {
+    font-weight: 500;
+}
+
+.ticket-create-card textarea {
+    min-height: 120px;
+}

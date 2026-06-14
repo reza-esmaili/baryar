@@ -1,0 +1,71 @@
+{% extends 'forwarder_panel/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'support/css/support.css' %}" />
+  <link rel="stylesheet" href="{% static 'support/css/ticket_create.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <div class="container p-4">
+    <div class="card shadow-sm p-4 ticket-create-card">
+      <h5 class="fw-bold mb-4">ثبت تیکت جدید</h5>
+
+      <form method="post" enctype="multipart/form-data" id="ticketForm">
+        {% csrf_token %}
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">واحد</label>
+            {{ form.department }}
+
+            {% if form.department.errors %}
+              <div class="text-danger small mt-1">{{ form.department.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label class="form-label">موضوع</label>
+            {{ form.topic }}
+
+            {% if form.topic.errors %}
+              <div class="text-danger small mt-1">{{ form.topic.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">عنوان</label>
+          {{ form.subject }}
+
+          {% if form.subject.errors %}
+            <div class="text-danger small mt-1">{{ form.subject.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">شرح درخواست</label>
+          {{ form.message }}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label">پیوست</label>
+          {{ form.attachment }}
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary">ارسال تیکت</button>
+
+          <a href="{% url 'forwarder_support:ticket_list' %}" class="btn btn-outline-secondary">انصراف</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    window.LOAD_TOPICS_URL = "{% url 'forwarder_support:ajax_topics' %}"
+  </script>
+  <script src="{% static 'support/js/ticket_create.js' %}"></script>
+{% endblock %}

@@ -35,7 +35,9 @@
                 <a href="{% url 'forwarder_panel:branch_list' %}"><i class="fas fa-tags"></i> مدیریت شعب</a>
                 <a href="{% url 'forwarder_panel:staff_list' %}"><i class="fas fa-tags"></i> مدیریت کارمندان</a>
                 <a href="#"><i class="fas fa-cog"></i> تنظیمات</a>
-                <a href="#"><i class="fas fa-headset"></i> پشتیبانی</a>
+                <a href="{% url 'forwarder_support:ticket_list' %}">
+                    <i class="fas fa-headset"></i> پشتیبانی
+                </a>
                 <a href="{% url 'forwarder_panel:documents' %}"><i class="fas fa-file-alt"></i> مدارک و مستندات</a>
 
             </nav>

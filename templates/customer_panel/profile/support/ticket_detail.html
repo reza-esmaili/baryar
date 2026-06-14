@@ -1,0 +1,71 @@
+{% extends 'customer_panel/profile/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+<link rel="stylesheet" href="{% static 'support/css/ticket_detail_customer.css' %}">
+
+<div class="support-container">
+    <!-- Header -->
+    <div class="ticket-detail-header d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold mb-1">تیکت #{{ ticket.number }}</h4>
+            <span class="text-muted small">{{ ticket.subject }}</span>
+        </div>
+        <span class="badge {% if ticket.status == 'closed' %}bg-secondary{% else %}bg-primary{% endif %} px-3 py-2">
+            {{ ticket.get_status_display }}
+        </span>
+    </div>
+
+    <!-- Chat Box -->
+    <div class="ticket-chat-container" id="chatBox">
+        {% for message in messages %}
+            <div class="message-wrapper {% if message.sender == request.user %}user-msg-row{% else %}admin-msg-row{% endif %}">
+                <div class="message-content">
+                    <div class="msg-info">
+                        <span>{% if message.sender == request.user %}شما{% else %}پشتیبانی{% endif %}</span>
+                        <span class="text-muted fw-normal">{{ message.created_at|date:"H:i" }}</span>
+                    </div>
+                    <p>{{ message.message }}</p>
+                    
+                    {% if message.attachment %}
+                        <div class="mt-2 pt-2 border-top">
+                            <a href="{{ message.attachment.url }}" class="text-primary text-decoration-none small">
+                                <i class="fas fa-paperclip me-1"></i> دریافت فایل پیوست
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Reply Form -->
+    <div class="reply-section">
+        {% if ticket.status != 'closed' %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <textarea name="message" class="form-control" rows="3" placeholder="پاسخ خود را بنویسید..." required></textarea>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <label class="small text-muted me-2 mb-0">پیوست:</label>
+                    <input type="file" name="attachment" class="form-control form-control-sm attachment-input w-auto">
+                </div>
+                <button type="submit" class="btn-send">ارسال پاسخ</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="alert alert-light text-center border mb-0 text-muted">
+            <i class="fas fa-lock me-2"></i> این تیکت بسته شده است.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // اسکرول به انتهای چت هنگام لود صفحه
+    var chatBox = document.getElementById("chatBox");
+    chatBox.scrollTop = chatBox.scrollHeight;
+</script>
+{% endblock %}

@@ -57,6 +57,11 @@
                class="{% if request.resolver_match.url_name == 'documents' %}active{% endif %}">
                 مدارک هویتی
             </a>
+            <a href="{% url 'customer_support:ticket_list' %}"
+                class="{% if 'support' in request.path %}active{% endif %}">
+                    پشتیبانی
+            </a>
+
 
         </nav>
 

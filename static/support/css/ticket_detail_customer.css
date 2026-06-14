@@ -1,0 +1,123 @@
+/* ticket_detail_customer.css */
+
+/* محفظه اصلی */
+.support-container {
+    font-family: 'Vazirmatn', Tahoma, sans-serif !important;
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+/* هدر تیکت */
+.ticket-detail-header {
+    background: #fff;
+    padding: 15px 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+/* باکس اصلی گفتگو */
+.ticket-chat-container {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 450px;
+    overflow-y: auto;
+    background-color: #fcfdfe !important;
+    border: 1px solid #eef2f6;
+    border-radius: 16px;
+    padding: 25px !important;
+    gap: 15px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* ساختار کلی هر ردیف پیام */
+.message-wrapper {
+    display: flex !important;
+    width: 100% !important;
+    margin-bottom: 10px;
+}
+
+/* --- پیام کاربر (سمت راست - تم آبی) --- */
+.user-msg-row {
+    justify-content: flex-start !important; /* در RTL یعنی سمت راست */
+}
+
+.user-msg-row .message-content {
+    background-color: #ffffff !important;
+    border: 1px solid #dbeafe !important;
+    border-right: 4px solid #2563eb !important;
+    border-radius: 15px 2px 15px 15px !important;
+    color: #1e293b;
+}
+
+/* --- پیام پشتیبانی (سمت چپ - تم خاکستری) --- */
+.admin-msg-row {
+    justify-content: flex-end !important; /* در RTL یعنی سمت چپ */
+}
+
+.admin-msg-row .message-content {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 4px solid #64748b !important;
+    border-radius: 2px 15px 15px 15px !important;
+    color: #334155;
+}
+
+/* محتوای داخلی حباب پیام */
+.message-content {
+    max-width: 75%;
+    padding: 12px 16px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+.message-content p {
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.8 !important;
+}
+
+.msg-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+
+/* بخش فرم پاسخ */
+.reply-section {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #eef2f6;
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.reply-section textarea {
+    border-radius: 12px !important;
+    padding: 15px !important;
+    border: 1px solid #d1d9e6 !important;
+    font-size: 14px !important;
+    background-color: #fbfcfd !important;
+}
+
+.btn-send {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    padding: 10px 30px !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    transition: 0.2s;
+}
+
+.btn-send:hover {
+    background-color: #1d4ed8 !important;
+    transform: translateY(-1px);
+}
+
+.attachment-input {
+    font-size: 12px !important;
+    border-radius: 8px !important;
+}

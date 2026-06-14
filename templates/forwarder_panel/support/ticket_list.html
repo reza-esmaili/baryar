@@ -1,0 +1,79 @@
+{% extends 'forwarder_panel/base.html' %}
+{% load static %}
+
+{% block title %}
+  تیکت‌های پشتیبانی
+{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'support/css/support.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="fw-bold mb-1">سیستم پشتیبانی</h4>
+        <small class="text-muted">مدیریت و پیگیری تیکت‌ها</small>
+      </div>
+
+      <a href="{% url create_url_name %}" class="btn btn-primary">ثبت تیکت جدید</a>
+    </div>
+
+    <div class="card shadow-sm mb-4 p-3">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <select id="departmentFilter" class="form-select">
+            <option value="">همه واحدها</option>
+
+            {% for d in departments %}
+              <option value="{{ d.id }}">{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <input type="date" id="dateFrom" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+          <input type="date" id="dateTo" class="form-control" />
+        </div>
+
+        <div class="col-md-2">
+          <input type="text" id="searchInput" class="form-control" placeholder="جستجو عنوان" />
+        </div>
+
+        <div class="col-md-1">
+          <button id="clearFilters" class="btn btn-outline-secondary w-100">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>شماره</th>
+              <th>عنوان</th>
+              <th>واحد</th>
+              <th>اولویت</th>
+              <th>وضعیت</th>
+              <th>آخرین بروزرسانی</th>
+              <th>عملیات</th>
+            </tr>
+          </thead>
+
+          <tbody id="ticketsTable">
+            {% include 'forwarder_panel/support/partials/ticket_rows.html' %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'support/js/ticket_list.js' %}"></script>
+{% endblock %}

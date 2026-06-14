@@ -1,4 +1,5 @@
 from django.urls import path
+from django.urls import path, include
 
 from . import views
 
@@ -26,4 +27,6 @@ urlpatterns = [
 
     path("profile/documents/", views.document_list, name="documents"),
     path("profile/documents/upload/", views.upload_document, name="upload_document"),
+    path("profile/support/", include(('support.urls', 'support'), namespace='customer_support')),
+
 ]

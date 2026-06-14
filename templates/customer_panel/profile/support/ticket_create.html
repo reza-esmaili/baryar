@@ -1,0 +1,133 @@
+{% extends 'customer_panel/profile/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+<link rel="stylesheet" href="{% static 'support/css/ticket_create_customer.css' %}">
+
+<div class="ticket-create-page">
+    <div class="ticket-create-card">
+        <div class="ticket-create-header">
+            <div class="ticket-create-header-content">
+                <div class="ticket-create-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <div>
+                    <h4 class="ticket-create-title">ثبت درخواست پشتیبانی جدید</h4>
+                    <p class="ticket-create-subtitle mb-0">
+                        لطفاً اطلاعات تیکت را با دقت تکمیل کنید تا سریع‌تر بررسی شود.
+                    </p>
+                </div>
+            </div>
+
+            <a href="{% url 'customer_support:ticket_list' %}" class="ticket-cancel-link top-cancel-link">
+                <i class="fas fa-arrow-right"></i>
+                بازگشت
+            </a>
+        </div>
+
+        <div class="ticket-create-body">
+            {% if form.errors %}
+                <div class="ticket-alert ticket-alert-danger">
+                    <div class="ticket-alert-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="ticket-alert-content">
+                        <strong>لطفاً موارد زیر را اصلاح کنید:</strong>
+                        <ul class="mb-0 mt-2">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" id="ticketCreateForm" novalidate>
+                {% csrf_token %}
+
+                <div class="ticket-form-grid">
+                    <div class="ticket-form-group">
+                        <label class="ticket-label" for="{{ form.department.id_for_label }}">
+                            واحد پاسخ‌دهنده
+                        </label>
+                        <div class="ticket-field-wrap">
+                            {{ form.department }}
+                        </div>
+                    </div>
+
+                    <div class="ticket-form-group">
+                        <label class="ticket-label" for="{{ form.topic.id_for_label }}">
+                            موضوع عمومی
+                        </label>
+                        <div class="ticket-field-wrap">
+                            {{ form.topic }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ticket-form-group">
+                    <label class="ticket-label" for="{{ form.subject.id_for_label }}">
+                        عنوان تیکت
+                    </label>
+                    <div class="ticket-field-wrap">
+                        {{ form.subject }}
+                    </div>
+                </div>
+
+                <div class="ticket-form-group">
+                    <label class="ticket-label" for="{{ form.message.id_for_label }}">
+                        شرح کامل درخواست
+                    </label>
+                    <div class="ticket-field-wrap">
+                        {{ form.message }}
+                    </div>
+                    <div class="ticket-help-text">
+                        لطفاً مشکل یا درخواست خود را کامل و واضح توضیح دهید.
+                    </div>
+                </div>
+
+                <div class="ticket-form-group">
+                    <label class="ticket-label" for="{{ form.attachment.id_for_label }}">
+                        پیوست مستندات
+                        <span class="optional-badge">اختیاری</span>
+                    </label>
+                    <div class="ticket-field-wrap ticket-file-wrap">
+                        {{ form.attachment }}
+                    </div>
+                    <div class="ticket-help-text">
+                        فرمت‌های مجاز: JPG، PNG، PDF — حداکثر ۵ مگابایت
+                    </div>
+                </div>
+
+                <div class="ticket-form-actions">
+                    <button type="submit" class="btn-submit-ticket">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>ارسال تیکت</span>
+                    </button>
+
+                    <a href="{% url 'customer_support:ticket_list' %}" class="btn-cancel-ticket">
+                        <i class="fas fa-times"></i>
+                        <span>انصراف</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // اضافه کردن کلاس‌های استایل به المنت‌های جنگو به صورت خودکار
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+        el.classList.add('form-control-custom');
+    });
+    
+    window.LOAD_TOPICS_URL = "{% url 'customer_support:load_topics' %}";
+</script>
+<script src="{% static 'support/js/ticket_create.js' %}"></script>
+
+{% endblock %}

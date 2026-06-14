@@ -34,8 +34,10 @@ INSTALLED_APPS = [
     'orders',
     'django.contrib.humanize',
     'rest_framework',
-    'django_filters'
+    'django_filters',
+    'support'
 ]
+ASGI_APPLICATION = "cargo1.asgi.application"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

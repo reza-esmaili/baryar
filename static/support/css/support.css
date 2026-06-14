@@ -1,0 +1,88 @@
+/* ===== SUPPORT SYSTEM PROFESSIONAL UI ===== */
+
+.ticket-card {
+    border: none;
+    border-radius: 14px;
+    transition: all .25s ease;
+    background: #ffffff;
+}
+
+.ticket-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+}
+
+.ticket-unread {
+    border-right: 5px solid #0d6efd;
+    background: #f0f6ff;
+}
+
+.status-badge {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-weight: 500;
+}
+
+.status-open { background: #e7f1ff; color: #0d6efd; }
+.status-answered { background: #e8fff3; color: #198754; }
+.status-closed { background: #f8f9fa; color: #6c757d; }
+
+.priority-low { color: #6c757d; }
+.priority-medium { color: #0d6efd; }
+.priority-high { color: #fd7e14; }
+.priority-urgent { color: #dc3545; }
+
+.chat-container {
+    height: 480px;
+    overflow-y: auto;
+    background: #f7f9fc;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.chat-bubble {
+    max-width: 70%;
+    padding: 14px 16px;
+    border-radius: 18px;
+    margin-bottom: 15px;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.chat-user {
+    background: #ffffff;
+    border-right: 4px solid #0d6efd;
+}
+
+.chat-support {
+    background: #eef2f7;
+    border-left: 4px solid #6c757d;
+}
+
+.timeline {
+    border-right: 2px solid #dee2e6;
+    padding-right: 20px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    right: -9px;
+    top: 5px;
+    width: 14px;
+    height: 14px;
+    background: #0d6efd;
+    border-radius: 50%;
+}
+
+.reply-box {
+    border-top: 1px solid #dee2e6;
+    padding-top: 15px;
+}

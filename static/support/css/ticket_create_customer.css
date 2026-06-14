@@ -1,0 +1,311 @@
+/* ticket_create_customer.css */
+
+.ticket-create-page {
+    direction: rtl;
+    font-family: 'Vazirmatn', Tahoma, sans-serif !important;
+    padding: 10px 0 30px;
+}
+
+.ticket-create-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.ticket-create-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 28px;
+    border-bottom: 1px solid #edf2f7;
+    background:
+        linear-gradient(135deg, rgba(37, 99, 235, 0.04), rgba(59, 130, 246, 0.02)),
+        #ffffff;
+}
+
+.ticket-create-header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ticket-create-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+    flex-shrink: 0;
+}
+
+.ticket-create-title {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.ticket-create-subtitle {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.ticket-create-body {
+    padding: 28px;
+}
+
+.ticket-alert {
+    display: flex;
+    gap: 14px;
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+    border: 1px solid transparent;
+}
+
+.ticket-alert-danger {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.ticket-alert-icon {
+    font-size: 18px;
+    line-height: 1;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.ticket-alert-content ul {
+    padding-right: 18px;
+    margin-bottom: 0;
+}
+
+.ticket-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.ticket-form-group {
+    margin-bottom: 22px;
+}
+
+.ticket-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 9px;
+    color: #334155;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.optional-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.ticket-field-wrap {
+    position: relative;
+}
+
+/* استایل عمومی همه فیلدهایی که با JS کلاس می‌گیرند */
+.ticket-input,
+.ticket-select,
+.ticket-textarea,
+.ticket-file-input {
+    width: 100% !important;
+    font-family: 'Vazirmatn', Tahoma, sans-serif !important;
+    font-size: 14px !important;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    border: 1px solid #dbe3ee !important;
+    border-radius: 14px !important;
+    transition: all 0.22s ease !important;
+    box-shadow: none !important;
+}
+
+/* input/select */
+.ticket-input,
+.ticket-select {
+    min-height: 48px !important;
+    padding: 10px 14px !important;
+}
+
+/* textarea */
+.ticket-textarea {
+    min-height: 150px !important;
+    padding: 14px !important;
+    resize: vertical !important;
+    line-height: 1.9 !important;
+}
+
+/* file input */
+.ticket-file-input {
+    padding: 10px 12px !important;
+    background: #f8fafc !important;
+    cursor: pointer;
+}
+
+/* focus */
+.ticket-input:focus,
+.ticket-select:focus,
+.ticket-textarea:focus,
+.ticket-file-input:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12) !important;
+    outline: none !important;
+    background: #fff !important;
+}
+
+/* placeholder */
+.ticket-input::placeholder,
+.ticket-textarea::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* help text */
+.ticket-help-text {
+    margin-top: 8px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+/* actions */
+.ticket-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #eef2f7;
+}
+
+.btn-submit-ticket,
+.btn-cancel-ticket,
+.ticket-cancel-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none !important;
+    font-family: 'Vazirmatn', Tahoma, sans-serif !important;
+    font-weight: 700;
+    border-radius: 12px;
+    transition: all 0.22s ease;
+    cursor: pointer;
+}
+
+.btn-submit-ticket {
+    border: none !important;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    color: #ffffff !important;
+    padding: 12px 24px !important;
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.18);
+}
+
+.btn-submit-ticket:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 28px rgba(37, 99, 235, 0.24);
+}
+
+.btn-cancel-ticket {
+    padding: 12px 20px;
+    background: #f8fafc;
+    color: #475569 !important;
+    border: 1px solid #dbe3ee;
+}
+
+.btn-cancel-ticket:hover {
+    background: #f1f5f9;
+    color: #0f172a !important;
+}
+
+.ticket-cancel-link {
+    padding: 10px 16px;
+    background: #ffffff;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.ticket-cancel-link:hover {
+    background: #f8fafc;
+    color: #0f172a !important;
+}
+
+/* error styles from django */
+.errorlist {
+    list-style: none;
+    margin: 8px 0 0 0 !important;
+    padding: 0 !important;
+    color: #dc2626;
+    font-size: 12px;
+}
+
+.errorlist li {
+    margin-bottom: 4px;
+}
+
+/* make django generated selects and inputs nicer even before JS runs */
+#ticketCreateForm input,
+#ticketCreateForm select,
+#ticketCreateForm textarea {
+    font-family: 'Vazirmatn', Tahoma, sans-serif !important;
+}
+
+/* responsive */
+@media (max-width: 991.98px) {
+    .ticket-create-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .top-cancel-link {
+        align-self: flex-start;
+    }
+
+    .ticket-form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .ticket-create-body,
+    .ticket-create-header {
+        padding: 20px;
+    }
+
+    .ticket-create-title {
+        font-size: 18px;
+    }
+
+    .ticket-form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-submit-ticket,
+    .btn-cancel-ticket {
+        width: 100%;
+    }
+}
