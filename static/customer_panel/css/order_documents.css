@@ -1,0 +1,270 @@
+.documents-page {
+    background: #f4f7fc;
+    padding: 40px 20px;
+    min-height: 100vh;
+    font-family: 'Vazirmatn', sans-serif;
+    direction: rtl;
+}
+
+.documents-container {
+    max-width: 1100px;
+    margin: auto;
+    background: white;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.documents-header {
+    margin-bottom: 25px;
+}
+
+.documents-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.order-id {
+    color: #2563eb;
+}
+
+.documents-subtitle {
+    color: #6b7280;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+.documents-progress-box {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    padding: 18px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.progress-text {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #2563eb;
+}
+
+
+
+.documents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+
+
+.document-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    background: #fff;
+    transition: .2s;
+}
+
+.document-card:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+}
+
+
+
+.document-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.document-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+
+
+.badge {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-right: 6px;
+}
+
+.badge-required {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.badge-optional {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+
+
+.document-status {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+
+
+.document-description {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+
+
+.uploaded-file {
+    background: #f1f5f9;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.uploaded-file a {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+
+
+.rejection-box {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+
+
+.upload-box {
+    border: 2px dashed #d1d5db;
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 12px;
+    cursor: pointer;
+    background: #fafafa;
+}
+
+.upload-box:hover {
+    border-color: #2563eb;
+    background: #f0f6ff;
+}
+
+.file-input {
+    width: 100%;
+    margin-bottom: 8px;
+    font-family: 'Vazirmatn', sans-serif;
+
+}
+
+.upload-text {
+    font-size: 13px;
+    font-family: 'Vazirmatn', sans-serif;
+
+    color: #6b7280;
+}
+
+
+
+.form-group label {
+    font-size: 13px;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.form-group textarea {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 13px;
+    font-family: 'Vazirmatn', sans-serif;
+
+}
+
+
+
+.upload-button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.upload-button:hover {
+    background: #1e40af;
+}
+
+
+
+.documents-divider {
+    margin: 35px 0;
+}
+
+
+
+.finalize-section {
+    text-align: center;
+}
+
+.finalize-button {
+    background: #16a34a;
+    color: white;
+    padding: 12px 26px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.finalize-button:hover {
+    background: #15803d;
+}
+
+
+
+.finalize-disabled {
+    background: #9ca3af;
+    color: white;
+    padding: 12px 26px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: not-allowed;
+}
+
+
+
+.empty-documents {
+    background: #ecfdf5;
+    color: #065f46;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}

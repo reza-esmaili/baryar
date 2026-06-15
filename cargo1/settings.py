@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'support',
-    'django_jalali'
+    'django_jalali',
+    'documents'
 ]
 ASGI_APPLICATION = "cargo1.asgi.application"
 

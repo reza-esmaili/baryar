@@ -1,313 +1,305 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}ثبت درخواست حمل جدید{% endblock %}
+{% block title %}
+  ثبت درخواست حمل جدید
+{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'customer_panel/css/create_request.css' %}">
+  <link rel="stylesheet" href="{% static 'customer_panel/css/create_request.css' %}" />
 {% endblock %}
 
 {% block content %}
-<div class="cargo-request-page">
-
+  <div class="cargo-request-page">
     <section class="hero-card">
-        <div class="hero-content">
-            <div class="hero-badge">استعلام آنلاین نرخ حمل</div>
-            <h1>ثبت درخواست حمل جدید</h1>
-            <p>
-                مبدا، مقصد، شرایط حمل و مشخصات بار را وارد کنید تا نرخ‌های پیشنهادی فورواردرها را به‌صورت سریع و حرفه‌ای دریافت کنید.
-            </p>
-        </div>
+      <div class="hero-content">
+        <div class="hero-badge">استعلام آنلاین نرخ حمل</div>
+        <h1>ثبت درخواست حمل جدید</h1>
+        <p>مبدا، مقصد، شرایط حمل و مشخصات بار را وارد کنید تا نرخ‌های پیشنهادی فورواردرها را به‌صورت سریع و حرفه‌ای دریافت کنید.</p>
+      </div>
 
-        <div class="hero-stats">
-            <div class="hero-stat">
-                <span class="stat-value">24/7</span>
-                <span class="stat-label">استعلام آنلاین</span>
-            </div>
-            <div class="hero-stat">
-                <span class="stat-value">سریع</span>
-                <span class="stat-label">محاسبه نرخ</span>
-            </div>
-            <div class="hero-stat">
-                <span class="stat-value">هوشمند</span>
-                <span class="stat-label">پیشنهاد نرخ</span>
-            </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="stat-value">24/7</span>
+          <span class="stat-label">استعلام آنلاین</span>
         </div>
+        <div class="hero-stat">
+          <span class="stat-value">سریع</span>
+          <span class="stat-label">محاسبه نرخ</span>
+        </div>
+        <div class="hero-stat">
+          <span class="stat-value">هوشمند</span>
+          <span class="stat-label">پیشنهاد نرخ</span>
+        </div>
+      </div>
     </section>
 
     {% if form.errors or formset.errors %}
-        <div class="error-box">
-            <div class="error-box__title">خطا در تکمیل فرم</div>
-            <div class="error-box__body">
-                {% if form.errors %}
-                    <div class="error-block">
-                        <strong>خطاهای فرم اصلی:</strong>
-                        <div>{{ form.errors }}</div>
-                    </div>
-                {% endif %}
-                {% if formset.errors %}
-                    <div class="error-block">
-                        <strong>خطاهای ابعاد:</strong>
-                        <div>{{ formset.errors }}</div>
-                    </div>
-                {% endif %}
+      <div class="error-box">
+        <div class="error-box__title">خطا در تکمیل فرم</div>
+        <div class="error-box__body">
+          {% if form.errors %}
+            <div class="error-block">
+              <strong>خطاهای فرم اصلی:</strong>
+              <div>{{ form.errors }}</div>
             </div>
+          {% endif %}
+          {% if formset.errors %}
+            <div class="error-block">
+              <strong>خطاهای ابعاد:</strong>
+              <div>{{ formset.errors }}</div>
+            </div>
+          {% endif %}
         </div>
+      </div>
     {% endif %}
 
     <form method="post" id="cargo-request-form" class="cargo-form">
-        {% csrf_token %}
+      {% csrf_token %}
 
-        <input type="hidden" name="selected_rate_id" id="selected_rate_id" value="">
-        <input type="hidden" name="chargeable_weight" id="hidden_chargeable_weight" value="">
-        <input type="hidden" name="final_price" id="hidden_final_price" value="">
+      <input type="hidden" name="selected_rate_id" id="selected_rate_id" value="" />
+      <input type="hidden" name="chargeable_weight" id="hidden_chargeable_weight" value="" />
+      <input type="hidden" name="final_price" id="hidden_final_price" value="" />
 
-        <div class="cargo-layout">
-
-            <div class="cargo-main">
-
-                <section class="panel-card">
-                    <div class="panel-card__header">
-                        <div class="panel-title">
-                            <span class="step-badge">1</span>
-                            <div>
-                                <h2>اطلاعات مبدا</h2>
-                                <p>استان و شهرستان مبدا را انتخاب کنید.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-grid grid-2">
-                        <div class="form-group">
-                            <label for="{{ form.origin_province.id_for_label }}">{{ form.origin_province.label }}</label>
-                            {{ form.origin_province }}
-                        </div>
-                        <div class="form-group">
-                            <label for="{{ form.origin_city.id_for_label }}">{{ form.origin_city.label }}</label>
-                            {{ form.origin_city }}
-                        </div>
-                    </div>
-                </section>
-
-                <section class="panel-card">
-                    <div class="panel-card__header">
-                        <div class="panel-title">
-                            <span class="step-badge">2</span>
-                            <div>
-                                <h2>اطلاعات مقصد و شرایط حمل</h2>
-                                <p>کشور، شهر، روش حمل، پورت و نوع کالا را مشخص کنید.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-grid grid-5">
-                        <div class="form-group">
-                            <label for="{{ form.destination_country.id_for_label }}">{{ form.destination_country.label }}</label>
-                            {{ form.destination_country }}
-                        </div>
-                        <div class="form-group">
-                            <label for="{{ form.destination_city.id_for_label }}">{{ form.destination_city.label }}</label>
-                            {{ form.destination_city }}
-                        </div>
-                        <div class="form-group">
-                            <label for="{{ form.transport_mode.id_for_label }}">روش حمل</label>
-                            {{ form.transport_mode }}
-                        </div>
-                        <div class="form-group">
-                            <label for="{{ form.destination_port.id_for_label }}">پورت مقصد</label>
-                            {{ form.destination_port }}
-                        </div>
-                        <div class="form-group">
-                            <label for="{{ form.cargo_type.id_for_label }}">{{ form.cargo_type.label }}</label>
-                            {{ form.cargo_type }}
-                        </div>
-                    </div>
-                </section>
-
-                <section class="panel-card">
-                    <div class="panel-card__header">
-                        <div class="panel-title">
-                            <span class="step-badge">3</span>
-                            <div>
-                                <h2>مشخصات بار</h2>
-                                <p>وزن، ابعاد و در صورت نیاز اطلاعات کانتینر را وارد کنید.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="weight-section" class="cargo-subsection">
-                        <div class="form-grid grid-3">
-                            <div class="form-group">
-                                <label for="{{ form.actual_weight.id_for_label }}">{{ form.actual_weight.label }}</label>
-                                {{ form.actual_weight }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="container-section" class="cargo-subsection cargo-subsection--hidden">
-                        <div class="subsection-head">
-                            <h3>اطلاعات کانتینر</h3>
-                            <p>این بخش فقط برای حمل FCL فعال می‌شود.</p>
-                        </div>
-
-                        <div class="form-grid grid-3">
-                            <div class="form-group">
-                                <label for="{{ form.container_size.id_for_label }}">{{ form.container_size.label }}</label>
-                                {{ form.container_size }}
-                            </div>
-                            <div class="form-group">
-                                <label for="{{ form.container_type.id_for_label }}">{{ form.container_type.label }}</label>
-                                {{ form.container_type }}
-                            </div>
-                            <div class="form-group">
-                                <label for="{{ form.container_count.id_for_label }}">{{ form.container_count.label }}</label>
-                                {{ form.container_count }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="dimensions-section" class="cargo-subsection">
-                        <div class="subsection-head subsection-head--actions">
-                            <div>
-                                <h3>ابعاد بسته‌ها</h3>
-                                <p>برای هر نوع بسته، طول، عرض، ارتفاع و تعداد را ثبت کنید.</p>
-                            </div>
-
-                            <button type="button" id="custom-add-btn" class="add-dimension-btn">
-                                <span class="add-dimension-btn__icon">+</span>
-                                افزودن ردیف ابعاد
-                            </button>
-                        </div>
-
-                        {{ formset.management_form }}
-
-                        <div id="dimension-forms" class="dimension-list">
-                            {% for inline_form in formset %}
-                                <div class="dimension-form-row">
-                                    <div class="dimension-form-row__grid">
-                                        {% for field in inline_form.visible_fields %}
-                                            {% if field.name != 'DELETE' %}
-                                                <div class="form-group">
-                                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                                    {{ field }}
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-
-                                        {% for hidden in inline_form.hidden_fields %}
-                                            {{ hidden }}
-                                        {% endfor %}
-
-                                        <div class="form-group form-group--delete">
-                                            <button type="button" class="delete-row-btn" title="حذف ردیف">
-                                                <span>🗑️</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" id="calculate-btn" class="quote-btn">
-                            <span class="quote-btn__icon">⚡</span>
-                            استعلام قیمت
-                        </button>
-                    </div>
-                </section>
-
-                <section id="results-section" class="panel-card results-card" style="display: none;">
-                    <div class="panel-card__header">
-                        <div class="panel-title">
-                            <span class="step-badge step-badge--success">✓</span>
-                            <div>
-                                <h2>نتیجه استعلام قیمت</h2>
-                                <p>نرخ‌های پیشنهادی بر اساس اطلاعات وارد شده نمایش داده می‌شوند.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="results-summary">
-                        <div class="results-summary__item">
-                            <span>وزن محاسباتی</span>
-                            <strong id="display_chargeable_weight"></strong>
-                            <small>کیلوگرم</small>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="modern-table">
-                            <thead>
-                                <tr>
-                                    <th>شرکت فورواردر</th>
-                                    <th>قیمت واحد</th>
-                                    <th>قیمت کل</th>
-                                    <th>عملیات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rates-tbody">
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
+      <div class="cargo-layout">
+        <div class="cargo-main">
+          <section class="panel-card">
+            <div class="panel-card__header">
+              <div class="panel-title">
+                <span class="step-badge">1</span>
+                <div>
+                  <h2>اطلاعات مبدا</h2>
+                  <p>استان و شهرستان مبدا را انتخاب کنید.</p>
+                </div>
+              </div>
             </div>
 
-            <aside class="cargo-aside">
-                <div class="aside-card">
-                    <div class="aside-card__header">
-                        <h3>خلاصه درخواست</h3>
-                        <p>این بخش برای نمایش سریع وضعیت فرم طراحی شده است.</p>
-                    </div>
+            <div class="form-grid grid-2">
+              <div class="form-group">
+                <label for="{{ form.origin_province.id_for_label }}">{{ form.origin_province.label }}</label>
+                {{ form.origin_province }}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.origin_city.id_for_label }}">{{ form.origin_city.label }}</label>
+                {{ form.origin_city }}
+              </div>
+            </div>
+          </section>
 
-                    <div class="summary-list">
-                        <div class="summary-item">
-                            <span>مبدا</span>
-                            <strong>—</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span>مقصد</span>
-                            <strong>—</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span>روش حمل</span>
-                            <strong>—</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span>گورت</span>
-                            <strong>—</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span>نوع کالا</span>
-                            <strong>—</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span>وزن</span>
-                            <strong>—</strong>
-                        </div>
-                    </div>
+          <section class="panel-card">
+            <div class="panel-card__header">
+              <div class="panel-title">
+                <span class="step-badge">2</span>
+                <div>
+                  <h2>اطلاعات مقصد و شرایط حمل</h2>
+                  <p>کشور، شهر، روش حمل، پورت و نوع کالا را مشخص کنید.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid grid-5">
+              <div class="form-group">
+                <label for="{{ form.destination_country.id_for_label }}">{{ form.destination_country.label }}</label>
+                {{ form.destination_country }}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.destination_city.id_for_label }}">{{ form.destination_city.label }}</label>
+                {{ form.destination_city }}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.transport_mode.id_for_label }}">روش حمل</label>
+                {{ form.transport_mode }}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.destination_port.id_for_label }}">پورت مقصد</label>
+                {{ form.destination_port }}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.cargo_type.id_for_label }}">{{ form.cargo_type.label }}</label>
+                {{ form.cargo_type }}
+              </div>
+            </div>
+          </section>
+
+          <section class="panel-card">
+            <div class="panel-card__header">
+              <div class="panel-title">
+                <span class="step-badge">3</span>
+                <div>
+                  <h2>مشخصات بار</h2>
+                  <p>وزن، ابعاد و در صورت نیاز اطلاعات کانتینر را وارد کنید.</p>
+                </div>
+              </div>
+            </div>
+
+            <div id="weight-section" class="cargo-subsection">
+              <div class="form-grid grid-3">
+                <div class="form-group">
+                  <label for="{{ form.actual_weight.id_for_label }}">{{ form.actual_weight.label }}</label>
+                  {{ form.actual_weight }}
+                </div>
+              </div>
+            </div>
+
+            <div id="container-section" class="cargo-subsection cargo-subsection--hidden">
+              <div class="subsection-head">
+                <h3>اطلاعات کانتینر</h3>
+                <p>این بخش فقط برای حمل FCL فعال می‌شود.</p>
+              </div>
+
+              <div class="form-grid grid-3">
+                <div class="form-group">
+                  <label for="{{ form.container_size.id_for_label }}">{{ form.container_size.label }}</label>
+                  {{ form.container_size }}
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.container_type.id_for_label }}">{{ form.container_type.label }}</label>
+                  {{ form.container_type }}
+                </div>
+                <div class="form-group">
+                  <label for="{{ form.container_count.id_for_label }}">{{ form.container_count.label }}</label>
+                  {{ form.container_count }}
+                </div>
+              </div>
+            </div>
+
+            <div id="dimensions-section" class="cargo-subsection">
+              <div class="subsection-head subsection-head--actions">
+                <div>
+                  <h3>ابعاد بسته‌ها</h3>
+                  <p>برای هر نوع بسته، طول، عرض، ارتفاع و تعداد را ثبت کنید.</p>
                 </div>
 
-                <div class="aside-card aside-card--accent">
-                    <div class="aside-card__header">
-                        <h3>راهنمای سریع</h3>
-                        <p>برای بهترین نتیجه، ابتدا مبدا و مقصد را انتخاب کنید.</p>
+                <button type="button" id="custom-add-btn" class="add-dimension-btn">
+                  <span class="add-dimension-btn__icon">+</span>
+                  افزودن ردیف ابعاد
+                </button>
+              </div>
+
+              {{ formset.management_form }}
+
+              <div id="dimension-forms" class="dimension-list">
+                {% for inline_form in formset %}
+                  <div class="dimension-form-row">
+                    <div class="dimension-form-row__grid">
+                      {% for field in inline_form.visible_fields %}
+                        {% if field.name != 'DELETE' %}
+                          <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+
+                      {% for hidden in inline_form.hidden_fields %}
+                        {{ hidden }}
+                      {% endfor %}
+
+                      <div class="form-group form-group--delete">
+                        <button type="button" class="delete-row-btn" title="حذف ردیف"><span>🗑️</span></button>
+                      </div>
                     </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
 
-                    <ul class="guide-list">
-                        <li>اگر روش حمل FCL باشد، بخش کانتینر فعال می‌شود.</li>
-                        <li>در روش‌های دیگر، ابعاد بسته‌ها مبنای محاسبه است.</li>
-                        <li>بعد از استعلام، می‌توانید یکی از نرخ‌ها را انتخاب کنید.</li>
-                    </ul>
+            <div class="form-actions">
+              <button type="submit" id="calculate-btn" class="quote-btn">
+                <span class="quote-btn__icon">⚡</span>
+                استعلام قیمت
+              </button>
+            </div>
+          </section>
+
+          <section id="results-section" class="panel-card results-card" style="display: none;">
+            <div class="panel-card__header">
+              <div class="panel-title">
+                <span class="step-badge step-badge--success">✓</span>
+                <div>
+                  <h2>نتیجه استعلام قیمت</h2>
+                  <p>نرخ‌های پیشنهادی بر اساس اطلاعات وارد شده نمایش داده می‌شوند.</p>
                 </div>
-            </aside>
+              </div>
+            </div>
 
+            <div class="results-summary">
+              <div class="results-summary__item">
+                <span>وزن محاسباتی</span>
+                <strong id="display_chargeable_weight"></strong>
+                <small>کیلوگرم</small>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>شرکت فورواردر</th>
+                    <th>قیمت واحد</th>
+                    <th>قیمت کل</th>
+                    <th>عملیات</th>
+                  </tr>
+                </thead>
+                <tbody id="rates-tbody"></tbody>
+              </table>
+            </div>
+          </section>
         </div>
+
+        <aside class="cargo-aside">
+          <div class="aside-card">
+            <div class="aside-card__header">
+              <h3>خلاصه درخواست</h3>
+              <p>این بخش برای نمایش سریع وضعیت فرم طراحی شده است.</p>
+            </div>
+
+            <div class="summary-list">
+              <div class="summary-item">
+                <span>مبدا</span>
+                <strong>—</strong>
+              </div>
+              <div class="summary-item">
+                <span>مقصد</span>
+                <strong>—</strong>
+              </div>
+              <div class="summary-item">
+                <span>روش حمل</span>
+                <strong>—</strong>
+              </div>
+              <div class="summary-item">
+                <span>گورت</span>
+                <strong>—</strong>
+              </div>
+              <div class="summary-item">
+                <span>نوع کالا</span>
+                <strong>—</strong>
+              </div>
+              <div class="summary-item">
+                <span>وزن</span>
+                <strong>—</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="aside-card aside-card--accent">
+            <div class="aside-card__header">
+              <h3>راهنمای سریع</h3>
+              <p>برای بهترین نتیجه، ابتدا مبدا و مقصد را انتخاب کنید.</p>
+            </div>
+
+            <ul class="guide-list">
+              <li>اگر روش حمل FCL باشد، بخش کانتینر فعال می‌شود.</li>
+              <li>در روش‌های دیگر، ابعاد بسته‌ها مبنای محاسبه است.</li>
+              <li>بعد از استعلام، می‌توانید یکی از نرخ‌ها را انتخاب کنید.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
     </form>
-</div>
+  </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'customer_panel/js/create_request.js' %}"></script>
+  <script src="{% static 'customer_panel/js/create_request.js' %}"></script>
 {% endblock %}

@@ -122,6 +122,149 @@
       </div>
     </div>
   {% endif %}
+  {% if order.required_documents.all %}
+    <div class="content-card">
+      <div class="content-header">
+        <h2>مدارک اصلی سفارش</h2>
+      </div>
+
+      <div class="table-responsive">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>مدرک</th>
+              <th>فایل</th>
+              <th>وضعیت</th>
+              <th>توضیحات / دلیل رد</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for doc in order.required_documents.all %}
+              <tr>
+                <td>
+                  <strong>{{ doc.document_type.title }}</strong>
+                  {% if doc.is_required %}
+                    <span style="color:#dc2626;font-size:12px;">اجباری</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if doc.file %}
+                    <a href="{{ doc.file.url }}" target="_blank">مشاهده / دانلود</a>
+                  {% else %}
+                    <span style="color:#9ca3af;">آپلود نشده</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if doc.status == 'pending_upload' %}
+                    <span style="color:#6b7280;font-weight:600;">{{ doc.get_status_display }}</span>
+                  {% elif doc.status == 'uploaded' %}
+                    <span style="color:#2563eb;font-weight:600;">{{ doc.get_status_display }}</span>
+                  {% elif doc.status == 'approved' %}
+                    <span style="color:#16a34a;font-weight:600;">{{ doc.get_status_display }}</span>
+                  {% elif doc.status == 'rejected' %}
+                    <span style="color:#dc2626;font-weight:600;">{{ doc.get_status_display }}</span>
+                  {% else %}
+                    {{ doc.get_status_display }}
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if doc.status == 'rejected' and doc.rejection_reason %}
+                    <span style="color:#dc2626;">{{ doc.rejection_reason }}</span>
+                  {% elif doc.forwarder_note %}
+                    {{ doc.forwarder_note }}
+                  {% else %}
+                    <span style="color:#9ca3af;">-</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if additional_document_requests %}
+    <div class="content-card">
+      <div class="content-header">
+        <h2>مدارک تکمیلی درخواست‌شده توسط فورواردر</h2>
+      </div>
+
+      <div class="table-responsive">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>عنوان مدرک</th>
+              <th>توضیحات</th>
+              <th>وضعیت</th>
+              <th>فایل‌های ارسال‌شده</th>
+              <th>آپلود فایل</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for req in additional_document_requests %}
+              <tr>
+                <td>
+                  <strong>{{ req.document_title }}</strong>
+                </td>
+
+                <td>{{ req.description|default:'-' }}</td>
+
+                <td>
+                  {% if req.status == 'open' %}
+                    <span style="color:#2563eb;font-weight:600;">باز</span>
+                  {% elif req.status == 'completed' %}
+                    <span style="color:#16a34a;font-weight:600;">تکمیل شده</span>
+                  {% elif req.status == 'expired' %}
+                    <span style="color:#dc2626;font-weight:600;">منقضی شده</span>
+                  {% elif req.status == 'cancelled' %}
+                    <span style="color:#6b7280;font-weight:600;">لغو شده</span>
+                  {% else %}
+                    {{ req.get_status_display }}
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if req.uploads.all %}
+                    <ul style="padding-right:18px;margin:0;">
+                      {% for upload in req.uploads.all %}
+                        <li>
+                          <a href="{{ upload.file.url }}" target="_blank">مشاهده فایل {{ forloop.counter }}</a>
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <span style="color:#9ca3af;">فایلی ارسال نشده</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if req.status == 'open' %}
+                    <form method="POST" enctype="multipart/form-data" action="{% url 'customer:upload_additional_document' req.id %}">
+                      {% csrf_token %}
+
+                      <input type="file" name="file" required />
+
+                      <input type="text" name="customer_note" placeholder="توضیح اختیاری" />
+
+                      <button type="submit" class="btn-primary">آپلود</button>
+                    </form>
+                  {% else %}
+                    <span style="color:#9ca3af;">بسته شده</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
 
   {% if order.history.all %}
     <div class="content-card">

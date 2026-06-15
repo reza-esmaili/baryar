@@ -5,7 +5,6 @@
 
 {% block profile_extra_css %}
   <link rel="stylesheet" href="{% static 'customer_panel/css/order_list.css' %}" />
-
 {% endblock %}
 
 {% block profile_content %}
@@ -22,6 +21,13 @@
             {% for city in origin_cities %}
               <option value="{{ city.id }}">{{ city.name }}</option>
             {% endfor %}
+          </select>
+        </div>
+        <div class="filter-field" style="flex: 1;">
+          <select id="filter-shipping-procedure" style="width: 100%;">
+            <option value="">همه رویه‌ها</option>
+            <option value="passenger">مسافری</option>
+            <option value="commercial">تجاری</option>
           </select>
         </div>
 
@@ -82,7 +88,7 @@
       const destination = document.getElementById('filter-destination').value
       const transport = document.getElementById('filter-transport').value
       const date = document.getElementById('filter-date').value
-    
+      const shippingProcedure = document.getElementById('filter-shipping-procedure').value
       const tableBody = document.getElementById('orders-table')
       tableBody.classList.add('orders-table-loading')
     
@@ -91,7 +97,9 @@
       if (origin) {
         params.append('origin', origin)
       }
-    
+      if (shippingProcedure) {
+        params.append('shipping_procedure', shippingProcedure)
+      }
       if (destination) {
         params.append('destination', destination)
       }
@@ -122,17 +130,17 @@
         .catch((error) => {
           console.error(error)
           tableBody.innerHTML = `
-                  <tr class="orders-empty-row">
-                    <td colspan="7">خطا در دریافت اطلاعات سفارش‌ها.</td>
-                  </tr>
-                `
+                      <tr class="orders-empty-row">
+                        <td colspan="7">خطا در دریافت اطلاعات سفارش‌ها.</td>
+                      </tr>
+                    `
         })
         .finally(() => {
           tableBody.classList.remove('orders-table-loading')
         })
     }
     
-    document.querySelectorAll('#filter-origin, #filter-destination, #filter-transport, #filter-date').forEach((el) => {
+    document.querySelectorAll('#filter-origin, #filter-destination, #filter-transport, #filter-date, #filter-shipping-procedure').forEach((el) => {
       el.addEventListener('change', loadOrders)
     })
     
@@ -141,6 +149,7 @@
       document.getElementById('filter-destination').value = ''
       document.getElementById('filter-transport').value = ''
       document.getElementById('filter-date').value = ''
+      document.getElementById('filter-shipping-procedure').value = ''
     
       loadOrders()
     })

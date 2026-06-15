@@ -19,6 +19,8 @@ import xlsxwriter
 import pandas as pd
 from django.db.models import Q
 from orders.models import CargoRequest, OrderStatus, OrderHistory
+from documents.models import OrderDocument, AdditionalDocumentRequest
+
 from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta
@@ -686,38 +688,106 @@ def order_list_view(request):
     # اطمینان از بازگشت رندر برای درخواست‌های GET
     return render(request, 'forwarder_panel/order_list.html', context)
 
-
 @login_required
 @forwarder_required
 def order_detail_view(request, order_id):
-    forwarder_company = getattr(request.user, 'forwarder_company', None)
+    """
+    نمایش جزئیات سفارش برای فورواردر.
+
+    این ویو فقط سفارش‌هایی را نمایش می‌دهد که نرخ انتخاب‌شده آن‌ها متعلق به
+    شرکت فورواردر کاربر فعلی باشد. همچنین برای جلوگیری از N+1 Query، روابط
+    پرتکرار با select_related و prefetch_related بارگذاری می‌شوند.
+
+    قابلیت‌ها:
+    - نمایش اطلاعات کامل سفارش
+    - تغییر وضعیت سفارش توسط فورواردر
+    - نمایش مدارک اصلی سفارش
+    - نمایش درخواست‌های مدارک تکمیلی
+    - نمایش فایل‌های آپلودشده توسط مشتری برای مدارک تکمیلی
+    """
+
+    forwarder_company = getattr(request.user, "forwarder_company", None)
+
     order = get_object_or_404(
-        CargoRequest, 
-        id=order_id, 
-        selected_rate__forwarder=forwarder_company
+        CargoRequest.objects.select_related(
+            "customer",
+            "selected_rate",
+            "selected_rate__forwarder",
+            "origin_city",
+            "destination_port",
+            "destination_port__city",
+            "cargo_type",
+        ).prefetch_related(
+            "cargo_subcategories",
+            "dimensions",
+        ),
+        id=order_id,
+        selected_rate__forwarder=forwarder_company,
     )
-    
-    if request.method == 'POST':
-        new_status = request.POST.get('status')
-        note = request.POST.get('note', '')
-        
+
+    # -------------------------------------------------------------------------
+    # پردازش فرم تغییر وضعیت سفارش
+    # -------------------------------------------------------------------------
+    if request.method == "POST":
+        new_status = request.POST.get("status")
+        note = request.POST.get("note", "")
+
         if new_status and new_status in dict(OrderStatus.choices):
             old_status = order.status
-            order.status = new_status
-            order.save()
-            
-            OrderHistory.objects.create(
-                order=order,
-                changed_by=request.user,
-                field_name='status',
-                old_value=old_status,
-                new_value=new_status,
-                note=note
-            )
-            messages.success(request, "وضعیت سفارش با موفقیت بروزرسانی شد.")
-            return redirect('forwarder_panel:order_detail', order_id=order.id)
 
-    return render(request, 'forwarder_panel/order_detail.html', {'order': order, 'statuses': OrderStatus.choices})
+            if old_status != new_status:
+                with transaction.atomic():
+                    order.status = new_status
+                    order.save(update_fields=["status"])
+
+                    OrderHistory.objects.create(
+                        order=order,
+                        changed_by=request.user,
+                        field_name="status",
+                        old_value=old_status,
+                        new_value=new_status,
+                        note=note,
+                    )
+
+                messages.success(request, "وضعیت سفارش با موفقیت بروزرسانی شد.")
+            else:
+                messages.info(request, "وضعیت انتخاب‌شده با وضعیت فعلی سفارش یکسان است.")
+
+            return redirect("forwarder_panel:order_detail", order_id=order.id)
+
+        messages.error(request, "وضعیت انتخاب‌شده معتبر نیست.")
+        return redirect("forwarder_panel:order_detail", order_id=order.id)
+
+    # -------------------------------------------------------------------------
+    # مدارک اصلی سفارش
+    # -------------------------------------------------------------------------
+    order_documents = (
+        OrderDocument.objects
+        .filter(order=order)
+        .select_related("order", "uploaded_by", "reviewed_by")
+        .order_by("-created_at")
+    )
+
+    # -------------------------------------------------------------------------
+    # درخواست‌های مدرک تکمیلی و فایل‌های آپلودشده توسط مشتری
+    # related_name در مدل آپلود باید uploads باشد.
+    # -------------------------------------------------------------------------
+    additional_document_requests = (
+        AdditionalDocumentRequest.objects
+        .filter(order=order)
+        .select_related("order", "requested_by")
+        .prefetch_related("uploads")
+        .order_by("-created_at")
+    )
+
+    context = {
+        "order": order,
+        "statuses": OrderStatus.choices,
+        "order_documents": order_documents,
+        "additional_document_requests": additional_document_requests,
+    }
+
+    return render(request, "forwarder_panel/order_detail.html", context)
 
 @login_required
 @forwarder_required
@@ -854,4 +924,183 @@ def report_view(request):
     نمایش صفحه اصلی گزارشات شامل نمودار فروش
     """
     return render(request, 'forwarder_panel/report.html')
+@login_required
+@forwarder_required
+@require_POST
+def update_document_status(request, doc_id):
+    """
+    تغییر وضعیت مدرک اصلی سفارش توسط فورواردر.
 
+    نکته امنیتی:
+    مدرک فقط زمانی قابل تغییر است که سفارش مربوط به آن، متعلق به شرکت فورواردر
+    کاربر فعلی باشد. این کار مانع دسترسی غیرمجاز به مدارک سفارش‌های دیگر می‌شود.
+    """
+
+    forwarder_company = getattr(request.user, "forwarder_company", None)
+
+    doc = get_object_or_404(
+        OrderDocument.objects.select_related(
+            "order",
+            "order__selected_rate",
+            "order__selected_rate__forwarder",
+        ),
+        id=doc_id,
+        order__selected_rate__forwarder=forwarder_company,
+    )
+
+    status = request.POST.get("status")
+    reason = request.POST.get("reason", "").strip()
+
+    if status == "approved":
+        doc.approve(request.user)
+        messages.success(request, "مدرک با موفقیت تأیید شد.")
+
+    elif status == "rejected":
+        if not reason:
+            messages.error(request, "برای رد کردن مدرک، وارد کردن دلیل رد الزامی است.")
+            return redirect("forwarder_panel:order_detail", order_id=doc.order.id)
+
+        doc.reject(request.user, reason)
+        messages.success(request, "مدرک با موفقیت رد شد.")
+
+    else:
+        messages.error(request, "وضعیت انتخاب‌شده برای مدرک معتبر نیست.")
+
+    return redirect(
+        "forwarder_panel:order_detail",
+        order_id=doc.order.id,
+    )
+
+@login_required
+@forwarder_required
+@require_POST
+def request_additional_document(request, order_id):
+    """
+    ثبت درخواست مدرک تکمیلی از مشتری توسط فورواردر.
+
+    فورواردر فقط می‌تواند برای سفارش‌هایی درخواست مدرک ایجاد کند که متعلق به
+    شرکت خودش باشد.
+    """
+
+    forwarder_company = getattr(request.user, "forwarder_company", None)
+
+    order = get_object_or_404(
+        CargoRequest.objects.select_related(
+            "selected_rate",
+            "selected_rate__forwarder",
+        ),
+        id=order_id,
+        selected_rate__forwarder=forwarder_company,
+    )
+
+    title = request.POST.get("title", "").strip()
+    description = request.POST.get("description", "").strip()
+
+    if not title:
+        messages.error(request, "عنوان مدرک تکمیلی الزامی است.")
+        return redirect("forwarder_panel:order_detail", order_id=order.id)
+
+    AdditionalDocumentRequest.objects.create(
+        order=order,
+        requested_by=request.user,
+        custom_document_title=title,
+        description=description,
+    )
+
+    messages.success(request, "درخواست مدرک تکمیلی با موفقیت برای مشتری ثبت شد.")
+
+    return redirect(
+        "forwarder_panel:order_detail",
+        order_id=order.id,
+    )
+
+@login_required
+@forwarder_required
+@require_POST
+def update_document_status(request, doc_id):
+    """
+    تغییر وضعیت مدرک اصلی سفارش توسط فورواردر.
+
+    نکته امنیتی:
+    مدرک فقط زمانی قابل تغییر است که سفارش مربوط به آن، متعلق به شرکت فورواردر
+    کاربر فعلی باشد. این کار مانع دسترسی غیرمجاز به مدارک سفارش‌های دیگر می‌شود.
+    """
+
+    forwarder_company = getattr(request.user, "forwarder_company", None)
+
+    doc = get_object_or_404(
+        OrderDocument.objects.select_related(
+            "order",
+            "order__selected_rate",
+            "order__selected_rate__forwarder",
+        ),
+        id=doc_id,
+        order__selected_rate__forwarder=forwarder_company,
+    )
+
+    status = request.POST.get("status")
+    reason = request.POST.get("reason", "").strip()
+
+    if status == "approved":
+        doc.approve(request.user)
+        messages.success(request, "مدرک با موفقیت تأیید شد.")
+
+    elif status == "rejected":
+        if not reason:
+            messages.error(request, "برای رد کردن مدرک، وارد کردن دلیل رد الزامی است.")
+            return redirect("forwarder_panel:order_detail", order_id=doc.order.id)
+
+        doc.reject(request.user, reason)
+        messages.success(request, "مدرک با موفقیت رد شد.")
+
+    else:
+        messages.error(request, "وضعیت انتخاب‌شده برای مدرک معتبر نیست.")
+
+    return redirect(
+        "forwarder_panel:order_detail",
+        order_id=doc.order.id,
+    )
+
+
+@login_required
+@forwarder_required
+@require_POST
+def request_additional_document(request, order_id):
+    """
+    ثبت درخواست مدرک تکمیلی از مشتری توسط فورواردر.
+
+    فورواردر فقط می‌تواند برای سفارش‌هایی درخواست مدرک ایجاد کند که متعلق به
+    شرکت خودش باشد.
+    """
+
+    forwarder_company = getattr(request.user, "forwarder_company", None)
+
+    order = get_object_or_404(
+        CargoRequest.objects.select_related(
+            "selected_rate",
+            "selected_rate__forwarder",
+        ),
+        id=order_id,
+        selected_rate__forwarder=forwarder_company,
+    )
+
+    title = request.POST.get("title", "").strip()
+    description = request.POST.get("description", "").strip()
+
+    if not title:
+        messages.error(request, "عنوان مدرک تکمیلی الزامی است.")
+        return redirect("forwarder_panel:order_detail", order_id=order.id)
+
+    AdditionalDocumentRequest.objects.create(
+        order=order,
+        requested_by=request.user,
+        custom_document_title=title,
+        description=description,
+    )
+
+    messages.success(request, "درخواست مدرک تکمیلی با موفقیت برای مشتری ثبت شد.")
+
+    return redirect(
+        "forwarder_panel:order_detail",
+        order_id=order.id,
+    )

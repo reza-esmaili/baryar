@@ -38,4 +38,7 @@ urlpatterns = [
     path('reports/sales-chart-data/', views.get_sales_chart_data, name='get_sales_chart_data'),
     path('reports/', views.report_view, name='report_page'),
     path('support/', include(('support.urls', 'support'), namespace='forwarder_support')),
+    path("document/<int:doc_id>/status/",views.update_document_status,name="update_document_status"),
+    path("order/<int:order_id>/request-document/",views.request_additional_document,name="request_additional_document"),
+
 ]

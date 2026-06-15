@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'customer_panel/css/order_documents.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <div class="documents-page">
+    <div class="documents-container">
+      <!-- header -->
+
+      <div class="documents-header">
+        <h2>
+          مدارک موردنیاز سفارش
+          <span class="order-id">{{ order.id }}</span>
+        </h2>
+
+        <p class="documents-subtitle">برای تکمیل سفارش لطفاً مدارک خواسته شده را بارگذاری کنید</p>
+      </div>
+
+      <!-- progress box -->
+
+      <div class="documents-progress-box">
+        <div class="progress-text">
+          مدارک آپلود شده
+
+          <strong>{{ documents_status.uploaded_required }}</strong>
+
+          از
+
+          <strong>{{ documents_status.total_required }}</strong>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: {% widthratio documents_status.uploaded_required documents_status.total_required 100 %}%"></div>
+        </div>
+      </div>
+
+      <div class="documents-grid">
+        {% for document in documents %}
+          <div class="document-card">
+            <div class="document-card-header">
+              <div class="document-title">
+                {{ document.document_type.title }}
+
+                {% if document.is_required %}
+                  <span class="badge badge-required">اجباری</span>
+                {% else %}
+                  <span class="badge badge-optional">اختیاری</span>
+                {% endif %}
+              </div>
+
+              <div class="document-status">{{ document.get_status_display }}</div>
+            </div>
+
+            {% if document.source_rule and document.source_rule.customer_description %}
+              <p class="document-description">{{ document.source_rule.customer_description }}</p>
+            {% elif document.document_type.description %}
+              <p class="document-description">{{ document.document_type.description }}</p>
+            {% endif %}
+
+            {% if document.file %}
+              <div class="uploaded-file">
+                <a href="{{ document.file.url }}" target="_blank">مشاهده فایل آپلود شده</a>
+              </div>
+            {% endif %}
+
+            {% if document.rejection_reason %}
+              <div class="rejection-box">دلیل رد مدرک:
+
+                {{ document.rejection_reason }}</div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" action="{% url 'documents:upload_order_document' document.id %}">
+              {% csrf_token %}
+
+              <div class="upload-box">
+                <input type="file" name="file" required class="file-input" />
+
+                <span class="upload-text">انتخاب یا کشیدن فایل</span>
+              </div>
+
+              <div class="form-group">
+                <label>توضیح مشتری</label>
+
+                <textarea name="customer_note" rows="2" placeholder="در صورت نیاز توضیح اضافه کنید">{{ document.customer_note }}</textarea>
+              </div>
+
+              <button type="submit" class="upload-button">آپلود مدرک</button>
+            </form>
+          </div>
+        {% empty %}
+          <div class="empty-documents">برای این سفارش مدرکی تعریف نشده است.</div>
+        {% endfor %}
+      </div>
+
+      <hr class="documents-divider" />
+
+      <div class="finalize-section">
+        {% if documents_status.is_complete %}
+          <form method="post" action="{% url 'documents:finalize_order_after_documents' order.id %}">
+            {% csrf_token %}
+
+            <button type="submit" class="finalize-button">ثبت نهایی سفارش</button>
+          </form>
+        {% else %}
+          <button type="button" class="finalize-disabled" disabled>ثبت نهایی سفارش پس از تکمیل مدارک فعال می‌شود</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

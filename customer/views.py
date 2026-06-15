@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -9,7 +10,13 @@ from locations.models import City, DestinationCity
 
 from accounts.models import User, CustomerProfile, OTPCode
 from accounts.services import request_otp, verify_otp, SMSIRException
+
 from orders.models import CargoRequest
+
+from documents.models import (
+    AdditionalDocumentRequest,
+    AdditionalDocumentUpload,
+)
 
 from .forms import (
     LoginForm,
@@ -20,7 +27,20 @@ from .forms import (
 )
 
 
+# =============================================================================
+# Role Based Redirect Helpers
+# =============================================================================
+
 def redirect_based_on_role(user):
+    """
+    هدایت کاربر بعد از ورود یا ثبت‌نام بر اساس نقش.
+
+    - کاربران مرتبط با فورواردر به پنل فورواردر منتقل می‌شوند.
+    - سایر کاربران، از جمله مشتری، به صفحه اصلی سایت منتقل می‌شوند.
+
+    این تابع به صورت مرکزی استفاده می‌شود تا منطق redirect در چند View تکرار نشود.
+    """
+
     panel_roles = [
         User.Role.FORWARDER_ADMIN,
         User.Role.FORWARDER_EXPERT,
@@ -33,7 +53,17 @@ def redirect_based_on_role(user):
     return redirect("/")
 
 
+# =============================================================================
+# Authentication Views - Login / Logout
+# =============================================================================
+
 def login_view(request):
+    """
+    ورود کاربر با شماره موبایل و رمز عبور.
+
+    اگر کاربر از قبل لاگین کرده باشد، بر اساس نقش به پنل مناسب هدایت می‌شود.
+    """
+
     if request.user.is_authenticated:
         return redirect_based_on_role(request.user)
 
@@ -63,7 +93,31 @@ def login_view(request):
     )
 
 
+@login_required
+@require_POST
+def logout_view(request):
+    """
+    خروج کاربر از حساب کاربری.
+
+    این View فقط با POST کار می‌کند تا خروج ناخواسته با GET اتفاق نیفتد.
+    """
+
+    logout(request)
+    messages.success(request, "با موفقیت از حساب کاربری خارج شدید.")
+    return redirect("/")
+
+
+# =============================================================================
+# Registration Views - Customer / Forwarder Register Pages
+# =============================================================================
+
 def customer_register_view(request):
+    """
+    نمایش صفحه ثبت‌نام مشتری.
+
+    فرآیند ثبت‌نام واقعی از طریق AJAX و OTP انجام می‌شود.
+    """
+
     if request.user.is_authenticated:
         return redirect_based_on_role(request.user)
 
@@ -82,6 +136,12 @@ def customer_register_view(request):
 
 
 def forwarder_register_view(request):
+    """
+    نمایش صفحه ثبت‌نام فورواردر.
+
+    فرآیند ثبت‌نام واقعی از طریق AJAX و OTP انجام می‌شود.
+    """
+
     if request.user.is_authenticated:
         return redirect_based_on_role(request.user)
 
@@ -99,8 +159,25 @@ def forwarder_register_view(request):
     )
 
 
+# =============================================================================
+# OTP Login APIs
+# =============================================================================
+
 @require_POST
 def web_login_request_otp(request):
+    """
+    درخواست ارسال کد OTP برای ورود.
+
+    ورودی:
+        - mobile
+
+    خروجی:
+        JsonResponse شامل وضعیت عملیات.
+
+    نکته امنیتی:
+        فقط برای کاربر فعال موجود، OTP ارسال می‌شود.
+    """
+
     mobile = request.POST.get("mobile")
     mobile = OTPCode.normalize_mobile(mobile)
 
@@ -113,20 +190,31 @@ def web_login_request_otp(request):
     try:
         result = request_otp(mobile=mobile, purpose=OTPCode.Purpose.LOGIN)
         return JsonResponse({"ok": True, **result})
+
     except ValueError as e:
         return JsonResponse({"ok": False, "message": str(e)}, status=429)
+
     except SMSIRException as e:
         return JsonResponse({"ok": False, "message": str(e)}, status=502)
 
 
 @require_POST
 def web_login_verify_otp(request):
+    """
+    تایید کد OTP ورود.
+
+    در صورت صحت کد:
+        - کاربر لاگین می‌شود.
+        - redirect_url مناسب بر اساس نقش کاربر برگردانده می‌شود.
+    """
+
     mobile = OTPCode.normalize_mobile(request.POST.get("mobile"))
     code = request.POST.get("code", "")
 
     if verify_otp(mobile=mobile, purpose=OTPCode.Purpose.LOGIN, code=code):
         try:
             user = User.objects.get(mobile=mobile, is_active=True)
+
         except User.DoesNotExist:
             return JsonResponse(
                 {"ok": False, "message": "کاربر یافت نشد."},
@@ -157,8 +245,19 @@ def web_login_verify_otp(request):
     )
 
 
+# =============================================================================
+# OTP Register APIs
+# =============================================================================
+
 @require_POST
 def web_register_request_otp(request):
+    """
+    درخواست ارسال OTP برای ثبت‌نام.
+
+    اطلاعات اولیه ثبت‌نام در session نگهداری می‌شود تا بعد از تایید OTP،
+    حساب کاربری ساخته شود.
+    """
+
     mobile = OTPCode.normalize_mobile(request.POST.get("mobile"))
     first_name = request.POST.get("first_name", "").strip()
     last_name = request.POST.get("last_name", "").strip()
@@ -200,14 +299,25 @@ def web_register_request_otp(request):
     try:
         result = request_otp(mobile=mobile, purpose=OTPCode.Purpose.REGISTER)
         return JsonResponse({"ok": True, **result})
+
     except ValueError as e:
         return JsonResponse({"ok": False, "message": str(e)}, status=429)
+
     except SMSIRException as e:
         return JsonResponse({"ok": False, "message": str(e)}, status=502)
 
 
 @require_POST
 def web_register_verify_otp(request):
+    """
+    تایید OTP ثبت‌نام و ساخت حساب کاربری.
+
+    بعد از ساخت کاربر:
+        - اطلاعات session پاک می‌شود.
+        - کاربر لاگین می‌شود.
+        - redirect_url مناسب برگردانده می‌شود.
+    """
+
     pending = request.session.get("pending_register")
 
     if not pending:
@@ -224,6 +334,7 @@ def web_register_verify_otp(request):
 
     if User.objects.filter(mobile=mobile).exists():
         request.session.pop("pending_register", None)
+
         return JsonResponse(
             {"ok": False, "message": "این شماره موبایل قبلاً ثبت شده است."},
             status=400,
@@ -261,27 +372,35 @@ def web_register_verify_otp(request):
     )
 
 
-@login_required
-@require_POST
-def logout_view(request):
-    logout(request)
-    messages.success(request, "با موفقیت از حساب کاربری خارج شدید.")
-    return redirect("/")
-
-
 @require_POST
 def web_register_cancel(request):
-    request.session.pop("pending_register", None)
-    return JsonResponse({"ok": True, "message": "فرآیند ثبت‌نام لغو شد."})
+    """
+    لغو فرآیند ثبت‌نام و پاک کردن داده‌های موقت از session.
+    """
 
+    request.session.pop("pending_register", None)
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": "فرآیند ثبت‌نام لغو شد.",
+        }
+    )
+
+
+# =============================================================================
+# Customer Profile Views
+# =============================================================================
 
 @login_required
 def profile_view(request):
     """
-    صفحه یکپارچه مشاهده و ویرایش پروفایل کاربر.
+    صفحه یکپارچه مشاهده و ویرایش پروفایل مشتری.
 
-    این View هم اطلاعات نمایشی را به profile.html می‌فرستد
-    و هم فرم‌های ویرایش را با instance صحیح مقداردهی می‌کند.
+    این View:
+        - اطلاعات کاربر و پروفایل مشتری را نمایش می‌دهد.
+        - فرم ویرایش اطلاعات کاربر و پروفایل مشتری را مدیریت می‌کند.
+        - چند آمار خلاصه برای داشبورد پروفایل آماده می‌کند.
     """
 
     user = request.user
@@ -301,13 +420,11 @@ def profile_view(request):
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
+
             messages.success(request, "اطلاعات پروفایل با موفقیت به‌روزرسانی شد.")
             return redirect("customer:profile")
-        else:
-            print("--- User Form Errors ---", user_form.errors)
-            print("--- Profile Form Errors ---", profile_form.errors)
 
-            messages.error(request, "خطایی در فرم رخ داده است. لطفاً فیلدها را بررسی کنید.")
+        messages.error(request, "خطایی در فرم رخ داده است. لطفاً فیلدها را بررسی کنید.")
 
     else:
         user_form = UserProfileForm(instance=user)
@@ -327,19 +444,20 @@ def profile_view(request):
         "documents_count": documents.count(),
     }
 
-    return render(request, "customer_panel/profile/profile.html", context)
+    return render(
+        request,
+        "customer_panel/profile/profile.html",
+        context,
+    )
 
 
 @login_required
 def edit_profile(request):
     """
-    این View قبلاً برای صفحه جداگانه ویرایش استفاده می‌شد.
+    مسیر سازگارکننده برای لینک‌های قدیمی ویرایش پروفایل.
 
-    چون حالا مشاهده و ویرایش داخل profile.html ادغام شده،
-    بهتر است هر درخواستی به edit_profile به صفحه اصلی پروفایل منتقل شود.
-
-    اگر در urls.py هنوز مسیر customer:profile_edit وجود دارد،
-    این تابع باعث می‌شود لینک‌های قبلی خراب نشوند.
+    چون مشاهده و ویرایش پروفایل اکنون در profile.html ادغام شده است،
+    همه درخواست‌ها به صفحه اصلی پروفایل منتقل می‌شوند.
     """
 
     return redirect("customer:profile")
@@ -347,49 +465,38 @@ def edit_profile(request):
 
 @login_required
 def profile_dashboard(request):
+    """
+    داشبورد خلاصه پروفایل مشتری.
+
+    این View آمار کلی حساب کاربر را نمایش می‌دهد.
+    """
+
     context = {
         "orders_count": request.user.cargo_requests.count(),
         "pending_orders": request.user.cargo_requests.filter(status="pending").count(),
         "documents_count": request.user.documents.count(),
     }
 
-    return render(request, "customer_panel/profile/dashboard.html", context)
-
-
-@login_required
-def order_detail(request, pk):
-    order = get_object_or_404(
-        CargoRequest.objects.select_related(
-            "cargo_type",
-            "origin_city",
-            "origin_city__province",
-            "destination_port",
-            "destination_port__city",
-            "destination_port__city__country",
-            "selected_rate",
-        ).prefetch_related(
-            "cargo_subcategories",
-            "dimensions",
-        ),
-        pk=pk,
-        customer=request.user,
-    )
-
     return render(
         request,
-        "customer_panel/profile/order_detail.html",
-        {
-            "order": order,
-        },
+        "customer_panel/profile/dashboard.html",
+        context,
     )
 
+
+# =============================================================================
+# Customer Orders Query Helpers
+# =============================================================================
 
 def get_customer_orders_queryset(user):
     """
-    Queryset پایه سفارش‌های مشتری با select_related های لازم
-    برای جلوگیری از N+1 Query.
+    Queryset پایه سفارش‌های مشتری.
 
-    ساختار صحیح مدل‌های location در پروژه:
+    هدف:
+        - جلوگیری از N+1 Query
+        - آماده کردن داده‌های لازم برای لیست سفارش‌ها و فیلتر Ajax
+
+    ساختار مدل‌های location در پروژه:
 
     مبدا:
         CargoRequest.origin_city -> City -> Province
@@ -399,7 +506,7 @@ def get_customer_orders_queryset(user):
     """
 
     return CargoRequest.objects.filter(
-        customer=user
+        customer=user,
     ).select_related(
         "cargo_type",
         "origin_city",
@@ -411,24 +518,25 @@ def get_customer_orders_queryset(user):
     ).order_by("-created_at")
 
 
+# =============================================================================
+# Customer Orders Views
+# =============================================================================
+
 @login_required
 def order_list(request):
     """
-    لیست سفارش‌های مشتری.
+    نمایش لیست سفارش‌های مشتری.
 
-    نکته مهم:
-    - origin_city از مدل City می‌آید و به Province وصل است.
-    - destination_port.city از مدل DestinationCity می‌آید و به Country وصل است.
-
-    بنابراین:
-    - برای شهرهای مبدا باید از City + province استفاده شود.
-    - برای شهرهای مقصد باید از DestinationCity + country استفاده شود.
+    همراه با:
+        - لیست شهرهای مبدا موجود در سفارش‌های همین مشتری
+        - لیست شهرهای مقصد موجود در سفارش‌های همین مشتری
+        - داده‌های لازم برای فیلتر کردن سفارش‌ها
     """
 
     orders = get_customer_orders_queryset(request.user)
 
     origin_city_ids = orders.exclude(
-        origin_city_id__isnull=True
+        origin_city_id__isnull=True,
     ).values_list(
         "origin_city_id",
         flat=True,
@@ -445,7 +553,7 @@ def order_list(request):
     )
 
     destination_city_ids = orders.exclude(
-        destination_port__city_id__isnull=True
+        destination_port__city_id__isnull=True,
     ).values_list(
         "destination_port__city_id",
         flat=True,
@@ -475,7 +583,122 @@ def order_list(request):
 
 
 @login_required
+def order_detail(request, pk):
+    """
+    نمایش جزئیات سفارش برای مشتری.
+
+    این صفحه علاوه بر اطلاعات اصلی سفارش، دو گروه مدرک را نمایش می‌دهد:
+
+    1. مدارک اصلی سفارش:
+        از طریق related_name مدل OrderDocument، یعنی:
+            order.required_documents.all
+
+    2. مدارک تکمیلی درخواست‌شده توسط فورواردر:
+        از طریق مدل AdditionalDocumentRequest
+
+    نکته امنیتی:
+        سفارش فقط در صورتی نمایش داده می‌شود که متعلق به request.user باشد.
+    """
+
+    order = get_object_or_404(
+        CargoRequest.objects.select_related(
+            "cargo_type",
+            "origin_city",
+            "origin_city__province",
+            "destination_port",
+            "destination_port__city",
+            "destination_port__city__country",
+            "selected_rate",
+        ).prefetch_related(
+            "cargo_subcategories",
+            "dimensions",
+            "required_documents",
+            "required_documents__document_type",
+        ),
+        pk=pk,
+        customer=request.user,
+    )
+
+    additional_document_requests = (
+        AdditionalDocumentRequest.objects
+        .filter(order=order)
+        .prefetch_related("uploads")
+        .order_by("-created_at")
+    )
+
+    context = {
+        "order": order,
+        "additional_document_requests": additional_document_requests,
+    }
+
+    return render(
+        request,
+        "customer_panel/profile/order_detail.html",
+        context,
+    )
+
+
+@login_required
+def filter_orders(request):
+    """
+    فیلتر Ajax سفارش‌ها.
+
+    پارامترهای GET:
+        - origin: شناسه City برای مبدا
+        - destination: شناسه DestinationCity برای مقصد
+        - transport: نوع حمل
+        - date: تاریخ ایجاد سفارش با فرمت YYYY-MM-DD
+        - shipping_procedure: رویه ارسال / حمل
+
+    خروجی:
+        رندر partial مخصوص ردیف‌های جدول سفارش‌ها.
+    """
+
+    origin_id = request.GET.get("origin")
+    destination_id = request.GET.get("destination")
+    transport = request.GET.get("transport")
+    date_str = request.GET.get("date")
+    shipping_procedure = request.GET.get("shipping_procedure")
+
+    orders = get_customer_orders_queryset(request.user)
+
+    if shipping_procedure:
+        orders = orders.filter(shipping_procedure=shipping_procedure)
+
+    if origin_id:
+        orders = orders.filter(origin_city_id=origin_id)
+
+    if destination_id:
+        orders = orders.filter(destination_port__city_id=destination_id)
+
+    if transport:
+        orders = orders.filter(transport_mode=transport)
+
+    if date_str:
+        orders = orders.filter(created_at__date=date_str)
+
+    return render(
+        request,
+        "customer_panel/profile/partials/orders_table_rows.html",
+        {
+            "orders": orders,
+        },
+    )
+
+
+# =============================================================================
+# Customer Identity Documents Views
+# =============================================================================
+
+@login_required
 def document_list(request):
+    """
+    نمایش لیست مدارک هویتی/عمومی کاربر.
+
+    این بخش مستقل از مدارک سفارش است.
+    مدارک سفارش از طریق order_detail نمایش داده می‌شوند.
+    """
+
     documents = request.user.documents.all()
 
     return render(
@@ -489,6 +712,13 @@ def document_list(request):
 
 @login_required
 def upload_document(request):
+    """
+    آپلود مدارک هویتی/عمومی کاربر.
+
+    این View مربوط به مدارک عمومی حساب کاربری است،
+    نه مدارک اختصاصی سفارش.
+    """
+
     if request.method == "POST":
         form = IdentityDocumentForm(request.POST, request.FILES)
 
@@ -514,41 +744,80 @@ def upload_document(request):
     )
 
 
+# =============================================================================
+# Additional Document Requests - Customer Upload
+# =============================================================================
+
 @login_required
-def filter_orders(request):
+@require_POST
+def upload_additional_document(request, request_id):
     """
-    فیلتر Ajax سفارش‌ها.
+    آپلود فایل برای مدرک تکمیلی درخواست‌شده توسط فورواردر.
 
-    پارامترهای GET:
-    - origin: شناسه City برای مبدا
-    - destination: شناسه DestinationCity برای مقصد
-    - transport: نوع حمل
-    - date: تاریخ ایجاد سفارش با فرمت YYYY-MM-DD
+    سناریو:
+        - فورواردر برای یک سفارش، مدرک جدیدی درخواست می‌کند.
+        - مشتری در صفحه جزئیات سفارش، درخواست را مشاهده می‌کند.
+        - مشتری فایل را از طریق همین View آپلود می‌کند.
+
+    نکات امنیتی:
+        - مشتری فقط می‌تواند برای سفارش خودش فایل آپلود کند.
+        - درخواست باید متعلق به سفارشی باشد که customer آن request.user است.
+        - اگر درخواست بسته/لغوشده/تکمیل‌شده باشد، آپلود جدید پذیرفته نمی‌شود.
+
+    نکته:
+        در این نسخه پس از اولین آپلود، وضعیت درخواست به completed تغییر می‌کند.
+        اگر می‌خواهی مشتری بتواند چند فایل برای یک درخواست آپلود کند،
+        بخش تغییر status به completed را حذف یا شرطی کن.
     """
 
-    origin_id = request.GET.get("origin")
-    destination_id = request.GET.get("destination")
-    transport = request.GET.get("transport")
-    date_str = request.GET.get("date")
+    additional_request = get_object_or_404(
+        AdditionalDocumentRequest.objects.select_related(
+            "order",
+            "order__customer",
+        ),
+        pk=request_id,
+        order__customer=request.user,
+    )
 
-    orders = get_customer_orders_queryset(request.user)
+    # فقط درخواست‌های باز اجازه آپلود دارند.
+    # این شرط با مقدار string نوشته شده تا حتی اگر TextChoices جداگانه نداشته باشی، کار کند.
+    if additional_request.status != "open":
+        messages.error(
+            request,
+            "امکان آپلود برای این درخواست وجود ندارد؛ وضعیت درخواست باز نیست.",
+        )
+        return redirect(
+            "customer:order_detail",
+            pk=additional_request.order.pk,
+        )
 
-    if origin_id:
-        orders = orders.filter(origin_city_id=origin_id)
+    uploaded_file = request.FILES.get("file")
+    customer_note = request.POST.get("customer_note", "").strip()
 
-    if destination_id:
-        orders = orders.filter(destination_port__city_id=destination_id)
+    if not uploaded_file:
+        messages.error(request, "لطفاً یک فایل برای بارگذاری انتخاب کنید.")
 
-    if transport:
-        orders = orders.filter(transport_mode=transport)
+        return redirect(
+            "customer:order_detail",
+            pk=additional_request.order.pk,
+        )
 
-    if date_str:
-        orders = orders.filter(created_at__date=date_str)
+    with transaction.atomic():
+        AdditionalDocumentUpload.objects.create(
+            request=additional_request,
+            file=uploaded_file,
+            uploaded_by=request.user,
+            customer_note=customer_note,
+        )
 
-    return render(
-        request,
-        "customer_panel/profile/partials/orders_table_rows.html",
-        {
-            "orders": orders,
-        },
+        # بعد از آپلود موفق، درخواست را تکمیل‌شده می‌کنیم.
+        # اگر منطق شما اجازه چند آپلود برای یک درخواست می‌دهد، این دو خط را حذف کن.
+        additional_request.status = "completed"
+        additional_request.save(update_fields=["status"])
+
+    messages.success(request, "فایل مدرک تکمیلی با موفقیت بارگذاری شد.")
+
+    return redirect(
+        "customer:order_detail",
+        pk=additional_request.order.pk,
     )

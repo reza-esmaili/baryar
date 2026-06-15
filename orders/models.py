@@ -10,15 +10,20 @@ class OrderStatus(models.TextChoices):
     ACCEPTED = 'accepted', 'تایید شده'
     REJECTED = 'rejected', 'رد شده'
     COMPLETED = 'completed', 'تکمیل شده'
+class ShippingProcedure(models.TextChoices):
+    PASSENGER = "passenger", "مسافری"
+    COMMERCIAL = "commercial", "تجاری"
 
 class CargoRequest(TimeStampedModel):
     """مدل اصلی درخواست/سفارش حمل کالا توسط مشتری"""
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cargo_requests', verbose_name='مشتری')
     
+
     # مشخصات مسیر و کالا (مرحله اول)
     origin_city = models.ForeignKey(City, on_delete=models.PROTECT, related_name='origin_requests', verbose_name='شهر مبدا')
     destination_port = models.ForeignKey(Port, on_delete=models.PROTECT, verbose_name='پورت/فرودگاه مقصد')
     transport_mode = models.CharField(max_length=20, choices=TransportMode.choices, verbose_name='روش حمل درخواست‌شده')
+    shipping_procedure = models.CharField(max_length=20,choices=ShippingProcedure.choices,default=ShippingProcedure.COMMERCIAL,verbose_name="رویه ارسال")
     cargo_type = models.ForeignKey(CargoType, on_delete=models.PROTECT, verbose_name='نوع کالا (دسته اصلی)')
     
     # اوزان
@@ -103,3 +108,4 @@ class OrderHistory(TimeStampedModel):
 
     def __str__(self):
         return f"History for Order #{self.order.id} at {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+

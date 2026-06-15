@@ -20,6 +20,8 @@ urlpatterns = [
     path('api/v1/rates/', include('rates.api.v1.urls')),
     path("forwarder/support/", include(("support.urls", "support"), namespace="forwarder_support")),
     path("customer/profile/support/", include(("support.urls", "support"), namespace="customer_support")),
+    path("documents/", include("documents.urls")),
+
 
 ]
 if settings.DEBUG:

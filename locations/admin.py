@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django import forms
 import openpyxl
-
+from orders.models import CargoRequest
 from .models import Province, City, Country, DestinationCity, Port
 
 # ==========================================
@@ -120,6 +120,7 @@ PORT_TYPE_MAP = {
 class CountryAdmin(admin.ModelAdmin):
     list_display = ["name", "code", "is_active"]
     inlines = [DestCityInline]
+    search_fields = ['name', 'iso_code']
     
     # معرفی قالب اختصاصی برای اضافه کردن دکمه آپلود
     change_list_template = "admin/locations/country/change_list.html"

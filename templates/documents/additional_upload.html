@@ -1,0 +1,42 @@
+{% extends 'customer_panel/profile/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+  <div class="content-card">
+    <h2>{{ additional_request.title }}</h2>
+
+    <p>
+      سفارش شماره:
+      <strong>#{{ additional_request.order.id }}</strong>
+    </p>
+
+    <p>
+      مدرک موردنیاز:
+      <strong>{{ additional_request.document_title }}</strong>
+    </p>
+
+    <div class="alert alert-info">{{ additional_request.description }}</div>
+
+    {% if message %}
+      <div class="alert alert-warning">{{ message }}</div>
+    {% endif %}
+
+    {% if not is_closed and form %}
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label>فایل مدرک</label>
+          {{ form.file }}
+        </div>
+
+        <div class="form-group mt-3">
+          <label>توضیحات</label>
+          {{ form.customer_note }}
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">ارسال مدرک</button>
+      </form>
+    {% endif %}
+  </div>
+{% endblock %}

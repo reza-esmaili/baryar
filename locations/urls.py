@@ -4,7 +4,6 @@ from . import views
 app_name = 'locations'
 
 urlpatterns = [
-    # ... مسیرهای قبلی شما ...
     
     # مسیرهای AJAX
     path('ajax/cities/', views.load_cities, name='ajax_load_cities'),
