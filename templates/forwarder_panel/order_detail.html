@@ -87,27 +87,32 @@
             </div>
         </div>
 
-        <!-- جدید: جدول ابعاد بار -->
+        <!-- جدول ابعاد بار - اصلاح شده به صورت تمام عرض -->
         {% if order.dimensions.exists %}
-        
-        <h3 class="text-lg font-bold mb-4 border-b pb-2">لیست ابعاد و تعداد بسته کالا</h3>
+        <div class="bg-white p-6 rounded-xl shadow-sm md:col-span-2 border-t-4 border-indigo-500">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+                لیست ابعاد و تعداد بسته کالا
+            </h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-right">
                     <thead class="bg-gray-50 text-gray-600 font-bold">
                         <tr>
-                            <th class="px-4 py-3 border-b">طول (cm)</th>
-                            <th class="px-4 py-3 border-b">عرض (cm)</th>
-                            <th class="px-4 py-3 border-b">ارتفاع (cm)</th>
-                            <th class="px-4 py-3 border-b">تعداد</th>
+                            <th class="px-4 py-3 border-b text-center">طول (cm)</th>
+                            <th class="px-4 py-3 border-b text-center">عرض (cm)</th>
+                            <th class="px-4 py-3 border-b text-center">ارتفاع (cm)</th>
+                            <th class="px-4 py-3 border-b text-center">تعداد</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y">
+                    <tbody class="divide-y text-center">
                         {% for item in order.dimensions.all %}
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3">{{ item.length }}</td>
-                            <td class="px-4 py-3">{{ item.width }}</td>
-                            <td class="px-4 py-3">{{ item.height }}</td>
-                            <td class="px-4 py-3">{{ item.quantity }}</td>
+                            <td class="px-4 py-3 font-medium">{{ item.length }}</td>
+                            <td class="px-4 py-3 font-medium">{{ item.width }}</td>
+                            <td class="px-4 py-3 font-medium">{{ item.height }}</td>
+                            <td class="px-4 py-3 font-bold text-blue-600">{{ item.quantity }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -115,118 +120,111 @@
             </div>
         </div>
         {% endif %}
+
         
         {% if order.required_documents.all %}
+            <div class="bg-white rounded-xl shadow-md md:col-span-2 border border-gray-200 overflow-hidden mt-6">
+                <!-- Header -->
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2 font-vazir">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        مدارک و مستندات سفارش
+                    </h3>
+                    <span class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">
+                        {{ order.required_documents.count }} مدرک
+                    </span>
+                </div>
 
-<div class="bg-white p-6 rounded-xl shadow-sm md:col-span-2">
+                <div class="p-4">
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700 text-xs font-bold">
+                                    <th class="px-4 py-3 border border-gray-200">عنوان مدرک</th>
+                                    <th class="px-4 py-3 border border-gray-200">فایل ارسالی</th>
+                                    <th class="px-4 py-3 border border-gray-200 text-center">وضعیت بررسی</th>
+                                    <th class="px-4 py-3 border border-gray-200">عملیات مدیریت</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                {% for doc in order.required_documents.all %}
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <!-- عنوان مدرک -->
+                                    <td class="px-4 py-3 border border-gray-200 font-medium text-gray-800">
+                                        {{ doc.document_type.title }}
+                                        {% if doc.is_required %}
+                                            <span class="block text-[10px] text-red-500 font-bold mt-1">● الزامی</span>
+                                        {% endif %}
+                                    </td>
 
-<h3 class="text-lg font-bold mb-4">مدارک سفارش</h3>
+                                    <!-- فایل -->
+                                    <td class="px-4 py-3 border border-gray-200">
+                                        {% if doc.file %}
+                                        <a href="{{ doc.file.url }}" target="_blank" class="inline-flex items-center gap-2 text-blue-600 hover:bg-blue-50 px-3 py-1 rounded border border-blue-200 transition-all text-xs">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            مشاهده مستند
+                                        </a>
+                                        {% else %}
+                                        <span class="text-gray-400 text-xs italic">فایل آپلود نشده</span>
+                                        {% endif %}
+                                    </td>
 
-<table class="w-full text-sm text-right">
+                                    <!-- وضعیت -->
+                                    <td class="px-4 py-3 border border-gray-200 text-center">
+                                        {% if doc.status == 'approved' %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded bg-green-50 text-green-700 border border-green-200 text-[11px] font-bold">
+                                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full ml-1.5"></span>
+                                                تایید شده
+                                            </span>
+                                        {% elif doc.status == 'rejected' %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded bg-red-50 text-red-700 border border-red-200 text-[11px] font-bold">
+                                                <span class="w-1.5 h-1.5 bg-red-500 rounded-full ml-1.5"></span>
+                                                رد شده
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold animate-pulse">
+                                                <span class="w-1.5 h-1.5 bg-amber-500 rounded-full ml-1.5"></span>
+                                                نیاز به بررسی
+                                            </span>
+                                        {% endif %}
+                                    </td>
 
-<thead class="bg-gray-50">
-<tr>
-<th class="p-2">مدرک</th>
-<th class="p-2">فایل</th>
-<th class="p-2">وضعیت</th>
-<th class="p-2">مدیریت</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for doc in order.required_documents.all %}
-
-<tr class="border-t">
-
-<td class="p-2 font-medium">
-{{ doc.document_type.title }}
-{% if doc.is_required %}
-<span class="text-red-500 text-xs">(اجباری)</span>
-{% endif %}
-</td>
-
-<td class="p-2">
-{% if doc.file %}
-<a href="{{ doc.file.url }}" target="_blank"
-class="text-blue-600 hover:underline">
-مشاهده فایل
-</a>
-{% else %}
-<span class="text-gray-400">آپلود نشده</span>
-{% endif %}
-</td>
-
-<td class="p-2">
-<span class="
-{% if doc.status == 'approved' %}text-green-600
-{% elif doc.status == 'rejected' %}text-red-600
-{% elif doc.status == 'uploaded' %}text-blue-600
-{% else %}text-gray-500{% endif %}
-font-medium
-">
-{{ doc.get_status_display }}
-</span>
-</td>
-
-<td class="p-2">
-
-{% if doc.file %}
-
-<form method="POST"
-action="{% url 'forwarder_panel:update_document_status' doc.id %}"
-class="flex gap-2 items-center">
-
-{% csrf_token %}
-
-<select name="status"
-class="border rounded px-2 py-1 text-sm">
-
-<option value="uploaded"
-{% if doc.status == 'uploaded' %}selected{% endif %}>
-در حال بررسی
-</option>
-
-<option value="approved"
-{% if doc.status == 'approved' %}selected{% endif %}>
-تایید
-</option>
-
-<option value="rejected"
-{% if doc.status == 'rejected' %}selected{% endif %}>
-رد
-</option>
-
-</select>
-
-<input type="text"
-name="reason"
-placeholder="دلیل رد (اختیاری)"
-class="border rounded px-2 py-1 text-xs">
-
-<button type="submit"
-class="bg-blue-600 text-white px-3 py-1 rounded text-xs">
-ثبت
-</button>
-
-</form>
-
-{% else %}
-<span class="text-gray-400 text-xs">منتظر آپلود مشتری</span>
-{% endif %}
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-</table>
-
-</div>
-
-{% endif %}
+                                    <!-- مدیریت -->
+                                    <td class="px-4 py-3 border border-gray-200">
+                                        {% if doc.file %}
+                                        <form method="POST" action="{% url 'forwarder_panel:update_document_status' doc.id %}" class="flex gap-2 items-center">
+                                            {% csrf_token %}
+                                            <select name="status" class="bg-white border border-gray-300 text-gray-700 text-xs rounded p-1.5 outline-none focus:border-blue-500">
+                                                <option value="uploaded" {% if doc.status == 'uploaded' %}selected{% endif %}>تغییر وضعیت</option>
+                                                <option value="approved">تایید</option>
+                                                <option value="rejected">رد مدرک</option>
+                                            </select>
+                                            
+                                            <input type="text" name="reason" placeholder="دلیل رد..." class="bg-white border border-gray-300 text-gray-700 text-xs rounded p-1.5 w-32 outline-none focus:border-blue-500">
+                                            
+                                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded shadow-sm transition-transform active:scale-90">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-gray-400 text-[11px]">بدون اقدام</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
 
         <div class="bg-white p-6 rounded-xl shadow-sm md:col-span-2">
 

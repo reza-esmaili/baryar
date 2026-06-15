@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+نتایج استعلام قیمت
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'customer_panel/css/rate_result.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="results-header">
+  <h2>نتایج جستجو برای درخواست #{{ request_obj.id }}</h2>
+
+  <div class="weight-badge">
+    {% if request_obj.shipping_term == 'FCL' %}
+      {{ request_obj.container_count }} عدد کانتینر
+      {{ request_obj.container_size }}
+      {{ request_obj.get_container_type_display|default:request_obj.container_type }}
+    {% else %}
+      وزن محاسباتی:
+      <strong>{{ request_obj.chargeable_weight|floatformat:0|intcomma }} کیلوگرم</strong>
+    {% endif %}
+  </div>
+</div>
+
+{% if rates %}
+
+  {% for rate in rates %}
+    <div class="rate-card">
+
+      <div>
+        <div class="forwarder-name">
+          {{ rate.company_name }}
+        </div>
+
+        <div class="forwarder-badge">
+          پیشنهاد ویژه مسیر شما
+        </div>
+      </div>
+
+      <div class="price-section">
+        <div class="unit-price">
+          قیمت واحد:
+          {{ rate.unit_price|floatformat:0|intcomma }} ریال
+        </div>
+
+        <div class="total-price">
+          {{ rate.total_price|floatformat:0|intcomma }} ریال
+        </div>
+      </div>
+
+      <div>
+        <button class="btn-reserve">
+          انتخاب و رزرو
+        </button>
+      </div>
+
+    </div>
+  {% endfor %}
+
+{% else %}
+
+  <div class="empty-state">
+    <div class="empty-icon">📦</div>
+    <h3>نتیجه‌ای یافت نشد</h3>
+    <p>
+      متاسفانه هیچ فورواردری برای این مسیر و مشخصات شما نرخی ثبت نکرده است.
+      لطفاً مسیر یا مشخصات دیگری را امتحان کنید.
+    </p>
+    <a href="{% url 'orders:create_request' %}" class="btn-primary-modern">
+      بازگشت و ویرایش درخواست
+    </a>
+  </div>
+
+{% endif %}
+
+{% endblock %}

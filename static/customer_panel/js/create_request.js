@@ -279,7 +279,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (data.success) {
                     resultsSection.style.display = 'block';
-                    displayCw.innerText = parseFloat(data.chargeable_weight).toLocaleString('fa-IR');
+                    // داخل بخش .then(data => { در فایل JS
+                    document.getElementById('display_actual_weight').innerText = 
+                        new Intl.NumberFormat('fa-IR').format(data.actual_weight || 0) + " کیلوگرم";
+
+                    document.getElementById('display_volumetric_weight').innerText = 
+                        new Intl.NumberFormat('fa-IR').format(data.volumetric_weight || 0) + " کیلوگرم";
+
+                    document.getElementById('display_chargeable_weight').innerText = 
+                        new Intl.NumberFormat('fa-IR').format(data.chargeable_weight || 0) + " کیلوگرم";
+
+
+
                     
                     ratesTbody.innerHTML = '';
                     if (data.rates.length === 0) {
@@ -291,19 +302,32 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             ratesTbody.innerHTML += `
                                 <tr>
-                                    <td class="fw-bold">${rate.company_name}</td>
-                                    <td>${unitPriceFmt}</td>
-                                    <td class="text-success fw-bold">${totalPriceFmt}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-success btn-sm select-rate-btn" 
-                                            data-rate-id="${rate.rate_id}" 
-                                            data-cw="${data.chargeable_weight}" 
-                                            data-price="${rate.total_price}">
-                                            انتخاب و ثبت سفارش
-                                        </button>
-                                    </td>
+
+                                <td class="forwarder-name">
+                                ${rate.company_name}
+                                </td>
+
+                                <td class="price-unit">
+                                ${unitPriceFmt}
+                                </td>
+
+                                <td class="price-total">
+                                ${totalPriceFmt}
+                                </td>
+
+                                <td>
+                                <button type="button"
+                                class="select-rate-btn"
+                                data-rate-id="${rate.rate_id}"
+                                data-cw="${data.chargeable_weight}"
+                                data-price="${rate.total_price}">
+                                انتخاب و ثبت سفارش
+                                </button>
+                                </td>
+
                                 </tr>
-                            `;
+                                `;
+
                         });
                     }
                     // اسکرول نرم به بخش نتایج

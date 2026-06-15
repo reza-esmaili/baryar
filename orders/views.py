@@ -60,10 +60,12 @@ def ajax_calculate_rates(request):
 
                 return JsonResponse({
                     'success': True,
-                    'chargeable_weight': match_data['chargeable_weight'],
+                    'actual_weight': match_data.get('actual_weight', 0),        # اضافه شد
+                    'volumetric_weight': match_data.get('volumetric_weight', 0), # اضافه شد
+                    'chargeable_weight': match_data.get('chargeable_weight', 0),
                     'rates': match_data['results']
                 })
-
+            
         return JsonResponse({
             'success': False,
             'errors': form.errors
@@ -145,73 +147,87 @@ def submit_order(request):
 
     return redirect('orders:create_request')
 
-
 @login_required
 def complete_order_details(request, order_id):
-    """
-    مرحله تکمیل اطلاعات سفارش
-    -------------------------
-    کاربر اطلاعات فرستنده و جزئیات نهایی سفارش را وارد می‌کند.
-
-    بعد از ذخیره:
-    - مدارک مورد نیاز بر اساس Rule Engine ساخته می‌شوند
-    - کاربر به صفحه آپلود مدارک هدایت می‌شود
-    """
-
     cargo_request = get_object_or_404(
         CargoRequest,
         id=order_id,
         customer=request.user,
-        status=OrderStatus.DRAFT,
     )
 
-    if request.method == "POST":
 
+    from documents.models import OrderDocument
+
+    # اطمینان از ساخت مدارک موردنیاز
+    sync_order_required_documents(cargo_request)
+
+    if request.method == "POST":
         form = OrderCompletionForm(
             request.POST,
+            request.FILES,
             instance=cargo_request,
             user=request.user
         )
 
         if form.is_valid():
-
             order = form.save(commit=False)
 
-            # شهر مبدا به عنوان شهر فرستنده در نظر گرفته می‌شود
             order.sender_city = order.origin_city
             order.sender_province = order.origin_city.province
 
-            # هنوز سفارش ارسال نشده (منتظر مدارک)
-            order.status = OrderStatus.DRAFT
+            # تغییر وضعیت سفارش
+            order.status = OrderStatus.PENDING
 
             order.save()
             form.save_m2m()
 
-            # ایجاد لیست مدارک مورد نیاز
+            # sync دوباره مدارک
             sync_order_required_documents(order)
 
-            # انتقال کاربر به صفحه آپلود مدارک
-            return redirect(
-                "documents:order_documents",
-                order_id=order.id
+            documents = OrderDocument.objects.select_related(
+                "document_type"
+            ).filter(order=order)
+
+            # ذخیره فایل‌ها
+            for doc in documents:
+                uploaded_file = request.FILES.get(f"doc_{doc.id}")
+
+                if uploaded_file:
+                    doc.file = uploaded_file
+                    doc.uploaded_by = request.user
+                    doc.status = "uploaded"
+                    doc.save()
+
+            # ثبت تاریخچه
+            OrderHistory.objects.create(
+                order=order,
+                changed_by=request.user,
+                note="اطلاعات سفارش تکمیل و مدارک بارگذاری شد و سفارش ثبت نهایی گردید."
             )
 
+            return redirect("customer:order_detail", pk=order.id)
     else:
         form = OrderCompletionForm(
             instance=cargo_request,
             user=request.user
         )
 
-    # بسیار مهم:
-    # در هر حالت باید HttpResponse برگردانده شود
+    documents = OrderDocument.objects.select_related(
+        "document_type"
+    ).filter(
+        order=cargo_request
+    ).order_by("document_type__title")
+
     return render(
         request,
         "customer_panel/complete_request.html",
         {
             "form": form,
-            "cargo_request": cargo_request
+            "cargo_request": cargo_request,
+            "documents": documents
         }
     )
+
 
 
 def load_cargo_types(request):

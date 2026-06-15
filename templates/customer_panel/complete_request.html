@@ -1,174 +1,382 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+
 {% block title %}
   تکمیل سفارش
 {% endblock %}
 
 {% block extra_css %}
-  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="{% static 'customer_panel/css/complete_order.css' %}" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'customer_panel/css/complete_order.css' %}" />
 {% endblock %}
 
 {% block content %}
-  <div class="complete-page">
-    <section class="complete-hero">
-      <div class="hero-content">
-        <h1>بررسی و تکمیل اطلاعات سفارش</h1>
+<div class="complete-page">
 
-        <p>اطلاعات وارد شده شامل آدرس مبدا ، آدرس مقصد و ... را بررسی کرده واطلاعات مالک بار و  جزئیات کالا را تکمیل نمایید.</p>
-      </div>
-    </section>
+<section class="complete-hero">
+<div class="hero-content">
+<h1>بررسی و تکمیل اطلاعات سفارش</h1>
 
-    <span id="current_user_data" data-name="{{ request.user.first_name }} {{ request.user.last_name }}" data-national-id="{{ user_national_id|default:'' }}" data-phone="{{ user_phone|default:request.user.mobile|default:'' }}" style="display:none;"></span>
+<p>
+اطلاعات وارد شده شامل آدرس مبدا، آدرس مقصد و ... را بررسی کرده و
+اطلاعات مالک بار و جزئیات کالا را تکمیل نمایید.
+</p>
+</div>
+</section>
 
-    <form method="post" id="complete-order-form">
-      {% csrf_token %}
 
-      {% if form.errors %}
-        <div class="error-box">
-          <div class="error-box__title">لطفاً خطاهای فرم را بررسی کنید</div>
+<span
+id="current_user_data"
+data-name="{{ request.user.first_name }} {{ request.user.last_name }}"
+data-national-id="{{ user_national_id|default:'' }}"
+data-phone="{{ user_phone|default:request.user.mobile|default:'' }}"
+style="display:none;">
+</span>
 
-          <div class="error-box__body">{{ form.errors }}</div>
-        </div>
-      {% endif %}
 
-      <section class="complete-card">
-        <div class="section-title">
-          <h2>خلاصه سفارش (پیش نویس)</h2>
-          <p>اطلاعات محاسبه شده از استعلام نرخ</p>
-        </div>
+<form method="post" enctype="multipart/form-data" id="complete-order-form">
 
-        <div class="summary-grid">
-          <div class="summary-item">
-            <span>نوع حمل</span>
-            <strong>{{ cargo_request.get_transport_mode_display }}</strong>
-          </div>
+{% csrf_token %}
 
-          <div class="summary-item">
-            <span>مبدا</span>
-            <strong>{{ cargo_request.origin_city.name }}</strong>
-          </div>
+{% if form.errors %}
+<div class="error-box">
+<div class="error-box__title">
+لطفاً خطاهای فرم را بررسی کنید
+</div>
 
-          <div class="summary-item">
-            <span>مقصد</span>
-            <strong>{{ cargo_request.destination_port.name }}</strong>
-          </div>
+<div class="error-box__body">
+{{ form.errors }}
+</div>
+</div>
+{% endif %}
 
-          <div class="summary-item">
-            <span>نوع کالا</span>
-            <strong>{{ cargo_request.cargo_type.name }}</strong>
-          </div>
 
-          <div class="summary-item">
-            <span>وزن محاسبه شده</span>
-            <strong>{{ cargo_request.chargeable_weight }} کیلوگرم</strong>
-          </div>
+<!-- =========================
+STEP INDICATOR
+========================= -->
 
-          <div class="summary-item">
-            <span>هزینه نهایی</span>
-            <strong>{{ cargo_request.final_price|intcomma  }}ریال</strong>
-          </div>
-        </div>
-      </section>
+<div class="complete-steps">
 
-      <section class="complete-card">
-        <div class="section-title">
-          <h2>اطلاعات مالک بار</h2>
-          <p>اطلاعات تماس فرستنده کالا</p>
-        </div>
+<div class="complete-step-item active" data-step-indicator="1">
+<span>۱</span>
+<p>اطلاعات مالک بار</p>
+</div>
 
-        <div class="checkbox-box">
-          {{ form.is_for_other }}
+<div class="complete-step-item" data-step-indicator="2">
+<span>۲</span>
+<p>آدرس مبدا</p>
+</div>
 
-          <label for="is_for_other_checkbox">{{ form.is_for_other.label }}</label>
-        </div>
+<div class="complete-step-item" data-step-indicator="3">
+<span>۳</span>
+<p>جزئیات کالا</p>
+</div>
 
-        <div class="form-grid grid-3">
-          <div class="form-group">
-            <label>نام و نام خانوادگی</label>
-            {{ form.sender_name }}
-            {{ form.sender_name.errors }}
-          </div>
+<div class="complete-step-item" data-step-indicator="4">
+<span>۴</span>
+<p>خلاصه سفارش</p>
+</div>
 
-          <div class="form-group">
-            <label>کد ملی</label>
-            {{ form.sender_national_id }}
-            {{ form.sender_national_id.errors }}
-          </div>
+<div class="complete-step-item" data-step-indicator="5">
+<span>۵</span>
+<p>آپلود مدارک</p>
+</div>
 
-          <div class="form-group">
-            <label>شماره تماس</label>
-            {{ form.sender_phone }}
-            {{ form.sender_phone.errors }}
-          </div>
-        </div>
-      </section>
+</div>
 
-      <section class="complete-card">
-        <div class="section-title">
-          <h2>آدرس مبدا جهت هماهنگی</h2>
-          <p>استان و شهر از اطلاعات درخواست اولیه دریافت شده‌اند</p>
-        </div>
 
-        <div class="info-box">استان و شهر مبدا قابل تغییر نیستند.</div>
 
-        <div class="form-grid grid-2">
-          <div class="form-group">
-            <label>استان</label>
-            {{ form.sender_province }}
-            {{ form.sender_province.errors }}
-          </div>
+<!-- =========================
+STEP 1
+========================= -->
 
-          <div class="form-group">
-            <label>شهر</label>
-            {{ form.sender_city }}
-            {{ form.sender_city.errors }}
-          </div>
-        </div>
+<section class="complete-card complete-step-panel active" data-step="1">
 
-        <div class="form-group mt-4">
-          <label>آدرس دقیق</label>
-          {{ form.sender_address }}
-          {{ form.sender_address.errors }}
-        </div>
-      </section>
+<div class="section-title">
+<h2>اطلاعات مالک بار</h2>
+<p>اطلاعات تماس فرستنده کالا</p>
+</div>
 
-      <section class="complete-card">
-        <div class="section-title">
-          <h2>جزئیات کالا</h2>
-          <p>دسته‌بندی دقیق‌تر کالا را مشخص کنید</p>
-        </div>
+<div class="checkbox-box">
+{{ form.is_for_other }}
+<label for="is_for_other_checkbox">
+{{ form.is_for_other.label }}
+</label>
+</div>
 
-        <div class="form-group">
-          <label>زیردسته کالا</label>
-          <small class="help-text">زیردسته‌های مرتبط با "{{ cargo_request.cargo_type.name }}"</small>
+<div class="form-grid grid-3">
 
-          {{ form.cargo_subcategories }}
+<div class="form-group">
+<label>نام و نام خانوادگی</label>
+{{ form.sender_name }}
+{{ form.sender_name.errors }}
+</div>
 
-          {{ form.cargo_subcategories.errors }}
-        </div>
+<div class="form-group">
+<label>کد ملی</label>
+{{ form.sender_national_id }}
+{{ form.sender_national_id.errors }}
+</div>
 
-        <div class="form-group mt-4">
-          <label>توضیحات تکمیلی کالا</label>
+<div class="form-group">
+<label>شماره تماس</label>
+{{ form.sender_phone }}
+{{ form.sender_phone.errors }}
+</div>
 
-          {{ form.other_cargo_details }}
+</div>
 
-          {{ form.other_cargo_details.errors }}
-        </div>
-      </section>
+</section>
 
-      <section class="complete-card">
-        <button type="submit" id="submit-btn" class="submit-btn">ادامه و تکمیل سفارش</button>
-      </section>
-    </form>
-  </div>
+
+
+<!-- =========================
+STEP 2
+========================= -->
+
+<section class="complete-card complete-step-panel" data-step="2">
+
+<div class="section-title">
+<h2>آدرس مبدا جهت هماهنگی</h2>
+<p>استان و شهر از اطلاعات درخواست اولیه دریافت شده‌اند</p>
+</div>
+
+<div class="info-box">
+استان و شهر مبدا قابل تغییر نیستند.
+</div>
+
+<div class="form-grid grid-2">
+
+<div class="form-group">
+<label>استان</label>
+{{ form.sender_province }}
+{{ form.sender_province.errors }}
+</div>
+
+<div class="form-group">
+<label>شهر</label>
+{{ form.sender_city }}
+{{ form.sender_city.errors }}
+</div>
+
+</div>
+
+<div class="form-group mt-4">
+<label>آدرس دقیق</label>
+{{ form.sender_address }}
+{{ form.sender_address.errors }}
+</div>
+
+</section>
+
+
+
+<!-- =========================
+STEP 3
+========================= -->
+
+<section class="complete-card complete-step-panel" data-step="3">
+
+<div class="section-title">
+<h2>جزئیات کالا</h2>
+<p>دسته‌بندی دقیق‌تر کالا را مشخص کنید</p>
+</div>
+
+<div class="form-group">
+
+<label>زیردسته کالا</label>
+
+<small class="help-text">
+زیردسته‌های مرتبط با "{{ cargo_request.cargo_type.name }}"
+</small>
+
+{{ form.cargo_subcategories }}
+
+{{ form.cargo_subcategories.errors }}
+
+</div>
+
+<div class="form-group mt-4">
+
+<label>توضیحات تکمیلی کالا</label>
+
+{{ form.other_cargo_details }}
+
+{{ form.other_cargo_details.errors }}
+
+</div>
+
+</section>
+
+
+
+<!-- =========================
+STEP 4
+========================= -->
+
+<section class="complete-card complete-step-panel" data-step="4">
+
+<div class="section-title">
+<h2>خلاصه سفارش - پیش‌نویس</h2>
+
+<p>
+اطلاعات محاسبه شده از استعلام نرخ را بررسی کنید
+</p>
+
+</div>
+
+
+<div class="summary-grid">
+
+<div class="summary-item">
+<span>نوع حمل</span>
+<strong>{{ cargo_request.get_transport_mode_display }}</strong>
+</div>
+
+<div class="summary-item">
+<span>مبدا</span>
+<strong>{{ cargo_request.origin_city.name }}</strong>
+</div>
+
+<div class="summary-item">
+<span>مقصد</span>
+<strong>{{ cargo_request.destination_port.name }}</strong>
+</div>
+
+<div class="summary-item">
+<span>نوع کالا</span>
+<strong>{{ cargo_request.cargo_type.name }}</strong>
+</div>
+
+<div class="summary-item">
+<span>وزن محاسبه شده</span>
+<strong>{{ cargo_request.chargeable_weight }} کیلوگرم</strong>
+</div>
+
+<div class="summary-item">
+<span>هزینه نهایی</span>
+<strong>{{ cargo_request.final_price|intcomma }} ریال</strong>
+</div>
+
+</div>
+
+</section>
+
+
+
+<!-- =========================
+STEP 5
+========================= -->
+
+<section class="complete-card complete-step-panel" data-step="5">
+
+<div class="section-title">
+
+<h2>بارگذاری مدارک</h2>
+
+<p>
+لطفاً مدارک مورد نیاز برای ثبت نهایی سفارش را بارگذاری نمایید
+</p>
+
+</div>
+
+
+{% if documents %}
+
+<div class="documents-upload-grid">
+
+{% for doc in documents %}
+
+<div class="doc-upload-item">
+
+<div class="doc-title">
+
+{{ doc.document_type.title }}
+
+{% if doc.is_required %}
+<span class="required-star">*</span>
+{% endif %}
+
+</div>
+
+<div class="doc-input">
+
+<input
+type="file"
+name="doc_{{ doc.id }}"
+class="form-control"
+{% if doc.is_required and not doc.file %}required{% endif %}
+>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="info-box">
+
+بعد از تایید اطلاعات، مدارک مورد نیاز برای سفارش ایجاد می‌شوند.
+
+</div>
+
+{% endif %}
+
+</section>
+
+
+
+<!-- =========================
+NAVIGATION
+========================= -->
+
+<section class="complete-card complete-navigation">
+
+<button
+type="button"
+id="complete-prev-btn"
+class="complete-nav-btn complete-prev-btn">
+بازگشت
+</button>
+
+
+<button
+type="button"
+id="complete-next-btn"
+class="complete-nav-btn complete-next-btn">
+ادامه
+</button>
+
+
+<button
+type="submit"
+id="submit-btn"
+class="submit-btn complete-submit-btn">
+
+ثبت اطلاعات و ادامه
+
+</button>
+
+</section>
+
+</form>
+
+</div>
 {% endblock %}
 
+
+
 {% block extra_js %}
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-  <script src="{% static 'customer_panel/js/complete_order.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script src="{% static 'customer_panel/js/complete_order.js' %}"></script>
+
 {% endblock %}

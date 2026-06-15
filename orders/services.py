@@ -92,6 +92,8 @@ def calculate_and_match_rates(data, dimensions_data):
     results = sorted(results, key=lambda x: Decimal(x['total_price']))
     
     return {
+        'actual_weight': str(actual_wt),             
+        'volumetric_weight': str(total_volumetric_weight),
         'chargeable_weight': str(cw),
         'results': results
     }

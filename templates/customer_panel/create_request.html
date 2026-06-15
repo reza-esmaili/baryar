@@ -7,6 +7,55 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'customer_panel/css/create_request.css' %}" />
+  <link rel="stylesheet" href="{% static 'customer_panel/css/rate_result.css' %}" />
+
+  <style>
+    .step-section {
+      display: none;
+    }
+    .step-section.active {
+      display: block;
+    }
+    
+    .step-navigation {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 25px;
+    }
+    
+    .step-progress {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+    
+    .step-progress div {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      background: #eee;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .step-progress .active {
+      background: #0d6efd;
+      color: white;
+    }
+    .step-navigation.step-two {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .step-navigation.step-two #calculate-btn {
+      width: 180px;
+    }
+    .is-invalid {
+      border: 2px solid #dc3545 !important;
+      background: #fff5f5;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -15,291 +64,484 @@
       <div class="hero-content">
         <div class="hero-badge">استعلام آنلاین نرخ حمل</div>
         <h1>ثبت درخواست حمل جدید</h1>
-        <p>مبدا، مقصد، شرایط حمل و مشخصات بار را وارد کنید تا نرخ‌های پیشنهادی فورواردرها را به‌صورت سریع و حرفه‌ای دریافت کنید.</p>
-      </div>
-
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span class="stat-value">24/7</span>
-          <span class="stat-label">استعلام آنلاین</span>
-        </div>
-        <div class="hero-stat">
-          <span class="stat-value">سریع</span>
-          <span class="stat-label">محاسبه نرخ</span>
-        </div>
-        <div class="hero-stat">
-          <span class="stat-value">هوشمند</span>
-          <span class="stat-label">پیشنهاد نرخ</span>
-        </div>
+        <p>مبدا، مقصد، شرایط حمل و مشخصات بار را وارد کنید تا نرخ‌های پیشنهادی فورواردرها را دریافت کنید.</p>
       </div>
     </section>
 
-    {% if form.errors or formset.errors %}
-      <div class="error-box">
-        <div class="error-box__title">خطا در تکمیل فرم</div>
-        <div class="error-box__body">
-          {% if form.errors %}
-            <div class="error-block">
-              <strong>خطاهای فرم اصلی:</strong>
-              <div>{{ form.errors }}</div>
-            </div>
-          {% endif %}
-          {% if formset.errors %}
-            <div class="error-block">
-              <strong>خطاهای ابعاد:</strong>
-              <div>{{ formset.errors }}</div>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    {% endif %}
+    <div class="step-progress">
+      <div id="progress-1" class="active">مرحله ۱: مبدا و مقصد</div>
+      <div id="progress-2">مرحله ۲: مشخصات بار</div>
+      <div id="progress-3">مرحله ۳: نتایج</div>
+    </div>
 
     <form method="post" id="cargo-request-form" class="cargo-form">
       {% csrf_token %}
 
-      <input type="hidden" name="selected_rate_id" id="selected_rate_id" value="" />
-      <input type="hidden" name="chargeable_weight" id="hidden_chargeable_weight" value="" />
-      <input type="hidden" name="final_price" id="hidden_final_price" value="" />
+      <input type="hidden" name="selected_rate_id" id="selected_rate_id" />
+      <input type="hidden" name="chargeable_weight" id="hidden_chargeable_weight" />
+      <input type="hidden" name="final_price" id="hidden_final_price" />
 
       <div class="cargo-layout">
         <div class="cargo-main">
-          <section class="panel-card">
-            <div class="panel-card__header">
-              <div class="panel-title">
-                <span class="step-badge">1</span>
-                <div>
-                  <h2>اطلاعات مبدا</h2>
-                  <p>استان و شهرستان مبدا را انتخاب کنید.</p>
-                </div>
+          <!-- STEP 1 -->
+          <div class="step-section active" id="step-1">
+            <section class="panel-card">
+              <div class="panel-card__header">
+                <h2>اطلاعات مبدا</h2>
               </div>
-            </div>
 
-            <div class="form-grid grid-2">
-              <div class="form-group">
-                <label for="{{ form.origin_province.id_for_label }}">{{ form.origin_province.label }}</label>
-                {{ form.origin_province }}
-              </div>
-              <div class="form-group">
-                <label for="{{ form.origin_city.id_for_label }}">{{ form.origin_city.label }}</label>
-                {{ form.origin_city }}
-              </div>
-            </div>
-          </section>
-
-          <section class="panel-card">
-            <div class="panel-card__header">
-              <div class="panel-title">
-                <span class="step-badge">2</span>
-                <div>
-                  <h2>اطلاعات مقصد و شرایط حمل</h2>
-                  <p>کشور، شهر، روش حمل، پورت و نوع کالا را مشخص کنید.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-grid grid-5">
-              <div class="form-group">
-                <label for="{{ form.destination_country.id_for_label }}">{{ form.destination_country.label }}</label>
-                {{ form.destination_country }}
-              </div>
-              <div class="form-group">
-                <label for="{{ form.destination_city.id_for_label }}">{{ form.destination_city.label }}</label>
-                {{ form.destination_city }}
-              </div>
-              <div class="form-group">
-                <label for="{{ form.transport_mode.id_for_label }}">روش حمل</label>
-                {{ form.transport_mode }}
-              </div>
-              <div class="form-group">
-                <label for="{{ form.destination_port.id_for_label }}">پورت مقصد</label>
-                {{ form.destination_port }}
-              </div>
-              <div class="form-group">
-                <label for="{{ form.cargo_type.id_for_label }}">{{ form.cargo_type.label }}</label>
-                {{ form.cargo_type }}
-              </div>
-            </div>
-          </section>
-
-          <section class="panel-card">
-            <div class="panel-card__header">
-              <div class="panel-title">
-                <span class="step-badge">3</span>
-                <div>
-                  <h2>مشخصات بار</h2>
-                  <p>وزن، ابعاد و در صورت نیاز اطلاعات کانتینر را وارد کنید.</p>
-                </div>
-              </div>
-            </div>
-
-            <div id="weight-section" class="cargo-subsection">
-              <div class="form-grid grid-3">
+              <div class="form-grid grid-2">
                 <div class="form-group">
-                  <label for="{{ form.actual_weight.id_for_label }}">{{ form.actual_weight.label }}</label>
-                  {{ form.actual_weight }}
+                  <label>{{ form.origin_province.label }}</label>
+                  {{ form.origin_province }}
+                </div>
+
+                <div class="form-group">
+                  <label>{{ form.origin_city.label }}</label>
+                  {{ form.origin_city }}
                 </div>
               </div>
+            </section>
+
+            <section class="panel-card">
+              <div class="panel-card__header">
+                <h2>اطلاعات مقصد</h2>
+              </div>
+
+              <div class="form-grid grid-5">
+                <div class="form-group">
+                  <label>{{ form.destination_country.label }}</label>
+                  {{ form.destination_country }}
+                </div>
+
+                <div class="form-group">
+                  <label>{{ form.destination_city.label }}</label>
+                  {{ form.destination_city }}
+                </div>
+
+                <div class="form-group">
+                  <label>روش حمل</label>
+                  {{ form.transport_mode }}
+                </div>
+
+                <div class="form-group">
+                  <label>پورت مقصد</label>
+                  {{ form.destination_port }}
+                </div>
+
+                <div class="form-group">
+                  <label>{{ form.cargo_type.label }}</label>
+                  {{ form.cargo_type }}
+                </div>
+              </div>
+            </section>
+
+            <div class="step-navigation">
+              <div></div>
+              <button type="button" class="btn btn-primary" id="next-step-1">مرحله بعد</button>
             </div>
+          </div>
 
-            <div id="container-section" class="cargo-subsection cargo-subsection--hidden">
-              <div class="subsection-head">
-                <h3>اطلاعات کانتینر</h3>
-                <p>این بخش فقط برای حمل FCL فعال می‌شود.</p>
+          <!-- STEP 2 -->
+
+          <div class="step-section" id="step-2">
+            <section class="panel-card">
+              <div class="panel-card__header">
+                <h2>مشخصات بار</h2>
               </div>
 
-              <div class="form-grid grid-3">
-                <div class="form-group">
-                  <label for="{{ form.container_size.id_for_label }}">{{ form.container_size.label }}</label>
-                  {{ form.container_size }}
-                </div>
-                <div class="form-group">
-                  <label for="{{ form.container_type.id_for_label }}">{{ form.container_type.label }}</label>
-                  {{ form.container_type }}
-                </div>
-                <div class="form-group">
-                  <label for="{{ form.container_count.id_for_label }}">{{ form.container_count.label }}</label>
-                  {{ form.container_count }}
+              <div id="weight-section" class="cargo-subsection">
+                <div class="form-grid grid-3">
+                  <div class="form-group">
+                    <label>{{ form.actual_weight.label }}</label>
+                    {{ form.actual_weight }}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div id="dimensions-section" class="cargo-subsection">
-              <div class="subsection-head subsection-head--actions">
-                <div>
+              <div id="container-section" class="cargo-subsection cargo-subsection--hidden">
+                <div class="form-grid grid-3">
+                  <div class="form-group">
+                    <label>{{ form.container_size.label }}</label>
+                    {{ form.container_size }}
+                  </div>
+
+                  <div class="form-group">
+                    <label>{{ form.container_type.label }}</label>
+                    {{ form.container_type }}
+                  </div>
+
+                  <div class="form-group">
+                    <label>{{ form.container_count.label }}</label>
+                    {{ form.container_count }}
+                  </div>
+                </div>
+              </div>
+
+              <div id="dimensions-section" class="cargo-subsection">
+                <div class="subsection-head subsection-head--actions">
                   <h3>ابعاد بسته‌ها</h3>
-                  <p>برای هر نوع بسته، طول، عرض، ارتفاع و تعداد را ثبت کنید.</p>
+
+                  <button type="button" id="custom-add-btn" class="add-dimension-btn">افزودن ردیف</button>
                 </div>
 
-                <button type="button" id="custom-add-btn" class="add-dimension-btn">
-                  <span class="add-dimension-btn__icon">+</span>
-                  افزودن ردیف ابعاد
-                </button>
-              </div>
+                {{ formset.management_form }}
 
-              {{ formset.management_form }}
+                <div id="dimension-forms">
+                  {% for inline_form in formset %}
+                    <div class="dimension-form-row">
+                      <div class="dimension-form-row__grid">
+                        {% for field in inline_form.visible_fields %}
+                          {% if field.name != 'DELETE' %}
+                            <div class="form-group">
+                              <label>{{ field.label }}</label>
+                              {{ field }}
+                            </div>
+                          {% endif %}
+                        {% endfor %}
 
-              <div id="dimension-forms" class="dimension-list">
-                {% for inline_form in formset %}
-                  <div class="dimension-form-row">
-                    <div class="dimension-form-row__grid">
-                      {% for field in inline_form.visible_fields %}
-                        {% if field.name != 'DELETE' %}
-                          <div class="form-group">
-                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            {{ field }}
-                          </div>
-                        {% endif %}
-                      {% endfor %}
+                        {% for hidden in inline_form.hidden_fields %}
+                          {{ hidden }}
+                        {% endfor %}
 
-                      {% for hidden in inline_form.hidden_fields %}
-                        {{ hidden }}
-                      {% endfor %}
-
-                      <div class="form-group form-group--delete">
-                        <button type="button" class="delete-row-btn" title="حذف ردیف"><span>🗑️</span></button>
+                        <div class="form-group">
+                          <button type="button" class="delete-row-btn">حذف</button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" id="calculate-btn" class="quote-btn">
-                <span class="quote-btn__icon">⚡</span>
-                استعلام قیمت
-              </button>
-            </div>
-          </section>
-
-          <section id="results-section" class="panel-card results-card" style="display: none;">
-            <div class="panel-card__header">
-              <div class="panel-title">
-                <span class="step-badge step-badge--success">✓</span>
-                <div>
-                  <h2>نتیجه استعلام قیمت</h2>
-                  <p>نرخ‌های پیشنهادی بر اساس اطلاعات وارد شده نمایش داده می‌شوند.</p>
+                  {% endfor %}
                 </div>
               </div>
-            </div>
 
-            <div class="results-summary">
-              <div class="results-summary__item">
-                <span>وزن محاسباتی</span>
-                <strong id="display_chargeable_weight"></strong>
-                <small>کیلوگرم</small>
+              <div class="step-navigation step-two">
+                <button type="button" class="btn btn-secondary" id="back-step-1">بازگشت</button>
+
+                <button type="submit" id="calculate-btn" class="quote-btn">استعلام قیمت</button>
               </div>
-            </div>
+            </section>
+          </div>
 
-            <div class="table-responsive">
-              <table class="modern-table">
-                <thead>
-                  <tr>
-                    <th>شرکت فورواردر</th>
-                    <th>قیمت واحد</th>
-                    <th>قیمت کل</th>
-                    <th>عملیات</th>
-                  </tr>
-                </thead>
-                <tbody id="rates-tbody"></tbody>
-              </table>
+          <!-- STEP 3 -->
+
+          <div class="step-section" id="step-3">
+            <section id="results-section" class="panel-card results-card">
+              <div class="panel-card__header">
+                <h2>نتیجه استعلام قیمت</h2>
+              </div>
+
+              <div class="results-summary">
+                <div class="results-summary__item">
+                  <span>وزن واقعی</span>
+                  <strong id="display_actual_weight">-</strong>
+                </div>
+
+                <div class="results-summary__item">
+                  <span>وزن حجمی</span>
+                  <strong id="display_volumetric_weight">-</strong>
+                </div>
+
+                <div class="results-summary__item">
+                  <span>وزن معیار محاسبات</span>
+                  <strong id="display_chargeable_weight">-</strong>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="modern-table">
+                  <thead>
+                    <tr>
+                      <th>فورواردر</th>
+                      <th>قیمت واحد</th>
+                      <th>قیمت کل</th>
+                      <th>عملیات</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="rates-tbody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <div class="step-navigation">
+              <button type="button" class="btn btn-secondary" id="back-step-2">بازگشت</button>
             </div>
-          </section>
+          </div>
         </div>
-
-        <aside class="cargo-aside">
-          <div class="aside-card">
-            <div class="aside-card__header">
-              <h3>خلاصه درخواست</h3>
-              <p>این بخش برای نمایش سریع وضعیت فرم طراحی شده است.</p>
-            </div>
-
-            <div class="summary-list">
-              <div class="summary-item">
-                <span>مبدا</span>
-                <strong>—</strong>
-              </div>
-              <div class="summary-item">
-                <span>مقصد</span>
-                <strong>—</strong>
-              </div>
-              <div class="summary-item">
-                <span>روش حمل</span>
-                <strong>—</strong>
-              </div>
-              <div class="summary-item">
-                <span>گورت</span>
-                <strong>—</strong>
-              </div>
-              <div class="summary-item">
-                <span>نوع کالا</span>
-                <strong>—</strong>
-              </div>
-              <div class="summary-item">
-                <span>وزن</span>
-                <strong>—</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="aside-card aside-card--accent">
-            <div class="aside-card__header">
-              <h3>راهنمای سریع</h3>
-              <p>برای بهترین نتیجه، ابتدا مبدا و مقصد را انتخاب کنید.</p>
-            </div>
-
-            <ul class="guide-list">
-              <li>اگر روش حمل FCL باشد، بخش کانتینر فعال می‌شود.</li>
-              <li>در روش‌های دیگر، ابعاد بسته‌ها مبنای محاسبه است.</li>
-              <li>بعد از استعلام، می‌توانید یکی از نرخ‌ها را انتخاب کنید.</li>
-            </ul>
-          </div>
-        </aside>
       </div>
     </form>
   </div>
 {% endblock %}
-
 {% block extra_js %}
   <script src="{% static 'customer_panel/js/create_request.js' %}"></script>
+
+  <script>
+    function showStep(step) {
+      document.querySelectorAll('.step-section').forEach((section) => {
+        section.classList.remove('active')
+      })
+    
+      const currentStep = document.getElementById('step-' + step)
+      if (currentStep) currentStep.classList.add('active')
+    
+      document.querySelectorAll('.step-progress div').forEach((item) => {
+        item.classList.remove('active')
+      })
+    
+      const currentProgress = document.getElementById('progress-' + step)
+      if (currentProgress) currentProgress.classList.add('active')
+    }
+    
+    function markFieldInvalid(field) {
+      if (!field) return
+      field.classList.add('is-invalid')
+    }
+    
+    function clearFieldInvalid(field) {
+      if (!field) return
+      field.classList.remove('is-invalid')
+    }
+    
+    function scrollToFirstInvalid(firstInvalid) {
+      if (firstInvalid) {
+        firstInvalid.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        })
+        firstInvalid.focus({ preventScroll: true })
+      }
+    }
+    
+    function validateStep1() {
+      let valid = true
+      let firstInvalid = null
+    
+      const requiredFields = [document.querySelector('[name="origin_province"]'), document.querySelector('[name="origin_city"]'), document.querySelector('[name="destination_country"]'), document.querySelector('[name="destination_city"]'), document.querySelector('[name="transport_mode"]'), document.querySelector('[name="destination_port"]'), document.querySelector('[name="cargo_type"]')]
+    
+      requiredFields.forEach((field) => {
+        if (!field || field.disabled) return
+    
+        const value = field.value ? field.value.trim() : ''
+    
+        if (!value) {
+          markFieldInvalid(field)
+          valid = false
+          if (!firstInvalid) firstInvalid = field
+        } else {
+          clearFieldInvalid(field)
+        }
+      })
+    
+      if (!valid) {
+        scrollToFirstInvalid(firstInvalid)
+      }
+    
+      return valid
+    }
+    
+    function validateStep2() {
+      let valid = true
+      let firstInvalid = null
+    
+      const transportMode = document.querySelector('[name="transport_mode"]')
+      const mode = transportMode ? transportMode.value : ''
+    
+      const isFCL = mode === 'sea_fcl' || mode === 'FCL'
+    
+      if (isFCL) {
+        const containerSize = document.querySelector('[name="container_size"]')
+        const containerType = document.querySelector('[name="container_type"]')
+        const containerCount = document.querySelector('[name="container_count"]')
+    
+        ;[containerSize, containerType, containerCount].forEach((field) => {
+          if (!field || field.disabled) return
+    
+          const value = field.value ? field.value.trim() : ''
+    
+          if (!value) {
+            markFieldInvalid(field)
+            valid = false
+            if (!firstInvalid) firstInvalid = field
+          } else {
+            clearFieldInvalid(field)
+          }
+        })
+      } else {
+        const actualWeight = document.querySelector('[name="actual_weight"]')
+    
+        if (actualWeight && !actualWeight.disabled) {
+          const weightValue = actualWeight.value ? actualWeight.value.trim() : ''
+    
+          if (!weightValue) {
+            markFieldInvalid(actualWeight)
+            valid = false
+            if (!firstInvalid) firstInvalid = actualWeight
+          } else {
+            clearFieldInvalid(actualWeight)
+          }
+        }
+    
+        const dimensionRows = document.querySelectorAll('#dimension-forms .dimension-form-row')
+    
+        if (dimensionRows.length === 0) {
+          valid = false
+        }
+    
+        dimensionRows.forEach((row) => {
+          const rowFields = row.querySelectorAll('input, select, textarea')
+    
+          rowFields.forEach((field) => {
+            if (!field) return
+            if (field.disabled) return
+            if (field.type === 'hidden') return
+            if (!field.name) return
+            if (field.name.includes('DELETE')) return
+            if (field.name.includes('TOTAL_FORMS')) return
+            if (field.name.includes('INITIAL_FORMS')) return
+            if (field.name.includes('MIN_NUM_FORMS')) return
+            if (field.name.includes('MAX_NUM_FORMS')) return
+    
+            const value = field.value ? field.value.trim() : ''
+    
+            if (!value) {
+              markFieldInvalid(field)
+              valid = false
+              if (!firstInvalid) firstInvalid = field
+            } else {
+              clearFieldInvalid(field)
+            }
+          })
+        })
+      }
+    
+      if (!valid) {
+        scrollToFirstInvalid(firstInvalid)
+      }
+    
+      return valid
+    }
+    
+    function resetResultsSection() {
+      const resultsSection = document.getElementById('results-section')
+      const ratesTbody = document.getElementById('rates-tbody')
+      const chargeableWeight = document.getElementById('display_chargeable_weight')
+      const calculateBtn = document.getElementById('calculate-btn')
+    
+      if (resultsSection) {
+        resultsSection.style.display = 'none'
+      }
+    
+      if (ratesTbody) {
+        ratesTbody.innerHTML = ''
+      }
+    
+      if (chargeableWeight) {
+        chargeableWeight.innerText = ''
+      }
+    
+      if (calculateBtn) {
+        calculateBtn.disabled = false
+        calculateBtn.innerText = 'استعلام قیمت'
+      }
+    }
+    
+    function bindLiveValidation() {
+      const allFields = document.querySelectorAll('input, select, textarea')
+    
+      allFields.forEach((field) => {
+        field.addEventListener('input', function () {
+          if (this.disabled || this.type === 'hidden') return
+    
+          const value = this.value ? this.value.trim() : ''
+          if (value) {
+            clearFieldInvalid(this)
+          }
+        })
+    
+        field.addEventListener('change', function () {
+          if (this.disabled || this.type === 'hidden') return
+    
+          const value = this.value ? this.value.trim() : ''
+          if (value) {
+            clearFieldInvalid(this)
+          }
+        })
+      })
+    }
+    
+    const nextStep1Btn = document.getElementById('next-step-1')
+    if (nextStep1Btn) {
+      nextStep1Btn.onclick = function () {
+        const isValid = validateStep1()
+    
+        if (!isValid) {
+          return
+        }
+    
+        showStep(2)
+      }
+    }
+    
+    const backStep1Btn = document.getElementById('back-step-1')
+    if (backStep1Btn) {
+      backStep1Btn.onclick = function () {
+        showStep(1)
+      }
+    }
+    
+    const backStep2Btn = document.getElementById('back-step-2')
+    if (backStep2Btn) {
+      backStep2Btn.onclick = function () {
+        resetResultsSection()
+        showStep(2)
+      }
+    }
+    
+    const form = document.getElementById('cargo-request-form')
+    if (form) {
+      form.addEventListener(
+        'submit',
+        function (e) {
+          const selectedRateId = document.getElementById('selected_rate_id')
+    
+          // اگر کاربر یکی از نرخ‌ها را انتخاب کرده باشد، اجازه ثبت نهایی بده
+          if (selectedRateId && selectedRateId.value !== '') {
+            return
+          }
+    
+          const step2 = document.getElementById('step-2')
+          const isStep2Active = step2 && step2.classList.contains('active')
+    
+          if (isStep2Active) {
+            const isValid = validateStep2()
+    
+            if (!isValid) {
+              e.preventDefault()
+              e.stopPropagation()
+              e.stopImmediatePropagation()
+              return false
+            }
+          }
+        },
+        true
+      )
+    }
+    
+    const resultsSection = document.getElementById('results-section')
+    if (resultsSection) {
+      const observer = new MutationObserver(() => {
+        const isVisible = resultsSection.style.display === 'block' || window.getComputedStyle(resultsSection).display !== 'none'
+    
+        if (isVisible) {
+          showStep(3)
+        }
+      })
+    
+      observer.observe(resultsSection, {
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      })
+    }
+    
+    bindLiveValidation()
+  </script>
 {% endblock %}
