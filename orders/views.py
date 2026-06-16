@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-
+from django.contrib import messages
 from .forms import CargoRequestForm, CargoDimensionFormSet, OrderCompletionForm
 from .services import calculate_and_match_rates
 from .models import CargoRequest, OrderStatus, OrderHistory
@@ -111,6 +111,13 @@ def submit_order(request):
 
                 # نرخ انتخاب شده
                 rate = get_object_or_404(Rate, id=selected_rate_id)
+                if rate.transport_mode != cargo_request.transport_mode:
+                    messages.error(request, "نرخ انتخاب‌شده با روش حمل سفارش مطابقت ندارد.")
+                    return redirect('orders:create_request')
+
+                if rate.shipping_procedure != cargo_request.shipping_procedure:
+                    messages.error(request, "نرخ انتخاب‌شده با رویه ارسال سفارش مطابقت ندارد.")
+                    return redirect('orders:create_request')
                 cargo_request.selected_rate = rate
 
                 cargo_request.chargeable_weight = chargeable_weight

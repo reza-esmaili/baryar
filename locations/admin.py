@@ -43,6 +43,8 @@ class PortInline(admin.TabularInline):
 class ProvinceAdmin(admin.ModelAdmin):
     list_display = ["name", "is_active"]
     inlines = [CityInline]
+    search_fields = ["name"]
+
     
     # معرفی قالب اختصاصی برای اضافه کردن دکمه آپلود
     change_list_template = "admin/locations/province/change_list.html"
@@ -97,7 +99,19 @@ class ProvinceAdmin(admin.ModelAdmin):
         return render(request, "admin/locations/excel_form.html", context)
 
 # ثبت مدل City به صورت ساده
-admin.site.register(City)
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ["name", "province", "is_active"]
+    list_filter = ["province", "is_active"]
+
+    search_fields = [
+        "name",
+        "province__name",
+    ]
+
+    autocomplete_fields = [
+        "province",
+    ]
 
 
 # ==========================================
@@ -196,14 +210,32 @@ class CountryAdmin(admin.ModelAdmin):
         )
         return render(request, "admin/locations/country_excel_form.html", context)
 
-
 @admin.register(DestinationCity)
 class DestinationCityAdmin(admin.ModelAdmin):
     list_display = ["name", "country", "is_active"]
     inlines = [PortInline]
 
+    search_fields = [
+        "name",
+        "country__name",
+    ]
+
+    autocomplete_fields = [
+        "country",
+    ]
 
 @admin.register(Port)
 class PortAdmin(admin.ModelAdmin):
     list_display = ["name", "port_type", "city", "code", "is_active"]
     list_filter = ["port_type", "is_active"]
+
+    search_fields = [
+        "name",
+        "code",
+        "city__name",
+        "city__country__name",
+    ]
+
+    autocomplete_fields = [
+        "city",
+    ]

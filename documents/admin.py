@@ -1,15 +1,14 @@
 from django.contrib import admin
-from django.utils.html import format_html
-from django.utils import timezone
+from django import forms
+
+from locations.models import City, DestinationCity, Port
 
 from .models import (
-    DocumentType,
-    DocumentRule,
-    OrderDocument,
     AdditionalDocumentRequest,
     AdditionalDocumentUpload,
-    OrderDocumentStatus,
-    AdditionalRequestStatus,
+    DocumentRule,
+    DocumentType,
+    OrderDocument,
 )
 
 
@@ -18,8 +17,6 @@ class DocumentTypeAdmin(admin.ModelAdmin):
     list_display = [
         "title",
         "code",
-        "allowed_extensions",
-        "max_file_size_mb",
         "is_active",
         "created_at",
     ]
@@ -35,21 +32,115 @@ class DocumentTypeAdmin(admin.ModelAdmin):
         "description",
     ]
 
-    prepopulated_fields = {
-        "code": ("title",)
-    }
+    ordering = [
+        "title",
+    ]
 
-    ordering = ["title"]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+    ]
+
+class DocumentRuleAdminForm(forms.ModelForm):
+    class Meta:
+        model = DocumentRule
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # در حالت اولیه، فیلدهای وابسته را خالی می‌کنیم
+        self.fields["origin_city"].queryset = City.objects.filter(is_active=True)
+        self.fields["destination_city"].queryset = DestinationCity.objects.filter(is_active=True)
+        self.fields["destination_port"].queryset = Port.objects.filter(is_active=True)
+
+
+        # -------------------------
+        # Origin City
+        # -------------------------
+        if "origin_province" in self.data:
+            try:
+                province_id = int(self.data.get("origin_province"))
+                self.fields["origin_city"].queryset = City.objects.filter(
+                    province_id=province_id,
+                    is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.origin_province_id:
+            self.fields["origin_city"].queryset = City.objects.filter(
+                province_id=self.instance.origin_province_id,
+                is_active=True
+            ).order_by("name")
+
+        # اگر instance شهر دارد ولی استان ندارد، برای جلوگیری از ناپدید شدن مقدار قبلی
+        elif self.instance.pk and self.instance.origin_city_id:
+            self.fields["origin_city"].queryset = City.objects.filter(
+                pk=self.instance.origin_city_id
+            )
+
+        # -------------------------
+        # Destination City
+        # -------------------------
+        if "destination_country" in self.data:
+            try:
+                country_id = int(self.data.get("destination_country"))
+                self.fields["destination_city"].queryset = DestinationCity.objects.filter(
+                    country_id=country_id,
+                    is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.destination_country_id:
+            self.fields["destination_city"].queryset = DestinationCity.objects.filter(
+                country_id=self.instance.destination_country_id,
+                is_active=True
+            ).order_by("name")
+
+        elif self.instance.pk and self.instance.destination_city_id:
+            self.fields["destination_city"].queryset = DestinationCity.objects.filter(
+                pk=self.instance.destination_city_id
+            )
+
+        # -------------------------
+        # Destination Port
+        # -------------------------
+        if "destination_city" in self.data:
+            try:
+                city_id = int(self.data.get("destination_city"))
+                self.fields["destination_port"].queryset = Port.objects.filter(
+                    city_id=city_id,
+                    is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.destination_city_id:
+            self.fields["destination_port"].queryset = Port.objects.filter(
+                city_id=self.instance.destination_city_id,
+                is_active=True
+            ).order_by("name")
+
+        elif self.instance.pk and self.instance.destination_port_id:
+            self.fields["destination_port"].queryset = Port.objects.filter(
+                pk=self.instance.destination_port_id
+            )
 
 
 @admin.register(DocumentRule)
 class DocumentRuleAdmin(admin.ModelAdmin):
+    form = DocumentRuleAdminForm
+
     list_display = [
         "title",
         "document_type",
+        "requirement_level",
         "shipping_procedure",
         "transport_mode",
+        "origin_province",
+        "origin_city",
         "destination_country",
+        "destination_city",
+        "destination_port",
         "cargo_type",
         "cargo_subcategory",
         "is_required",
@@ -61,17 +152,28 @@ class DocumentRuleAdmin(admin.ModelAdmin):
     list_filter = [
         "is_active",
         "is_required",
+        "requirement_level",
         "shipping_procedure",
         "transport_mode",
+        "origin_province",
+        "origin_city",
         "destination_country",
+        "destination_city",
+        "destination_port",
         "cargo_type",
-        "requirement_level",
+        "cargo_subcategory",
     ]
 
     search_fields = [
         "title",
         "document_type__title",
+        "document_type__code",
+        "origin_province__name",
+        "origin_city__name",
         "destination_country__name",
+        "destination_city__name",
+        "destination_port__name",
+        "destination_port__code",
         "cargo_type__name",
         "cargo_subcategory__name",
         "customer_description",
@@ -80,54 +182,89 @@ class DocumentRuleAdmin(admin.ModelAdmin):
 
     autocomplete_fields = [
         "document_type",
-        "destination_country",
         "cargo_type",
         "cargo_subcategory",
     ]
 
+    readonly_fields = [
+        "specificity_display",
+        "created_at",
+        "updated_at",
+    ]
+
     fieldsets = (
-        ("اطلاعات اصلی قانون", {
-            "fields": (
-                "title",
-                "document_type",
-                "is_required",
-                "is_active",
-                "priority",
-                "requirement_level",
-            )
-        }),
-        ("شرط‌های اعمال قانون", {
-            "fields": (
-                "shipping_procedure",
-                "transport_mode",
-                "destination_country",
-                "cargo_type",
-                "cargo_subcategory",
-            )
-        }),
-        ("توضیحات", {
-            "fields": (
-                "customer_description",
-                "admin_note",
-            )
-        }),
+        (
+            "اطلاعات اصلی قانون",
+            {
+                "fields": (
+                    "title",
+                    "document_type",
+                    "requirement_level",
+                    "is_required",
+                    "is_active",
+                    "priority",
+                    "specificity_display",
+                )
+            },
+        ),
+        (
+            "شرط‌های اعمال قانون",
+            {
+                "fields": (
+                    "shipping_procedure",
+                    "transport_mode",
+                    "origin_province",
+                    "origin_city",
+                    "destination_country",
+                    "destination_city",
+                    "destination_port",
+                    "cargo_type",
+                    "cargo_subcategory",
+                )
+            },
+        ),
+        (
+            "توضیحات",
+            {
+                "fields": (
+                    "customer_description",
+                    "admin_note",
+                )
+            },
+        ),
+        (
+            "زمان‌ها",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                )
+            },
+        ),
     )
 
+    ordering = [
+        "-priority",
+        "title",
+    ]
+
+    class Media:
+        js = (
+            "admin/documents/documentrule_dynamic.js",
+            "admin/documents/documentrule_dependent_fields.js",
+        )
+
+    @admin.display(description="امتیاز اختصاصی بودن")
     def specificity_display(self, obj):
         return obj.specificity_score
-
-    specificity_display.short_description = "امتیاز اختصاصی بودن"
-
 
 @admin.register(OrderDocument)
 class OrderDocumentAdmin(admin.ModelAdmin):
     list_display = [
-        "id",
         "order",
         "document_type",
         "status",
         "is_required",
-        "file_link",
         "uploaded_by",
         "reviewed_by",
         "reviewed_at",
@@ -137,24 +274,27 @@ class OrderDocumentAdmin(admin.ModelAdmin):
     list_filter = [
         "status",
         "is_required",
-        "document_type",
-        "created_at",
         "reviewed_at",
+        "created_at",
+        "document_type",
     ]
 
     search_fields = [
         "order__id",
-        "order__customer__mobile",
-        "order__customer__first_name",
-        "order__customer__last_name",
         "document_type__title",
-        "rejection_reason",
+        "document_type__code",
+        "uploaded_by__username",
+        "uploaded_by__first_name",
+        "uploaded_by__last_name",
+        "reviewed_by__username",
+        "reviewed_by__first_name",
+        "reviewed_by__last_name",
+        "admin_note",
     ]
 
     autocomplete_fields = [
         "order",
         "document_type",
-        "source_rule",
         "uploaded_by",
         "reviewed_by",
     ]
@@ -163,240 +303,185 @@ class OrderDocumentAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "reviewed_at",
-        "file_preview",
-    ]
-
-    actions = [
-        "approve_documents",
-        "reject_documents",
     ]
 
     fieldsets = (
-        ("اطلاعات مدرک", {
-            "fields": (
-                "order",
-                "document_type",
-                "source_rule",
-                "is_required",
-                "status",
-                "file",
-                "file_preview",
-            )
-        }),
-        ("آپلود و توضیحات", {
-            "fields": (
-                "uploaded_by",
-                "customer_note",
-                "forwarder_note",
-            )
-        }),
-        ("بررسی", {
-            "fields": (
-                "reviewed_by",
-                "reviewed_at",
-                "rejection_reason",
-            )
-        }),
-        ("زمان‌ها", {
-            "fields": (
-                "created_at",
-                "updated_at",
-            )
-        }),
+        (
+            "اطلاعات اصلی",
+            {
+                "fields": (
+                    "order",
+                    "document_type",
+                    "is_required",
+                    "status",
+                )
+            },
+        ),
+        (
+            "فایل",
+            {
+                "fields": (
+                    "file",
+                    "uploaded_by",
+                )
+            },
+        ),
+        (
+            "بررسی",
+            {
+                "fields": (
+                    "reviewed_by",
+                    "reviewed_at",
+                    "admin_note",
+                )
+            },
+        ),
+        (
+            "زمان‌ها",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                )
+            },
+        ),
     )
 
-    def file_link(self, obj):
-        if obj.file:
-            return format_html(
-                '<a href="{}" target="_blank">مشاهده فایل</a>',
-                obj.file.url
-            )
-        return "-"
-
-    file_link.short_description = "فایل"
-
-    def file_preview(self, obj):
-        if obj.file:
-            return format_html(
-                '<a href="{}" target="_blank">دانلود/مشاهده فایل</a>',
-                obj.file.url
-            )
-        return "فایلی آپلود نشده است."
-
-    file_preview.short_description = "پیش‌نمایش فایل"
-
-    def approve_documents(self, request, queryset):
-        updated = queryset.update(
-            status=OrderDocumentStatus.APPROVED,
-            reviewed_by=request.user,
-            reviewed_at=timezone.now(),
-            rejection_reason="",
-        )
-
-        self.message_user(request, f"{updated} مدرک تایید شد.")
-
-    approve_documents.short_description = "تایید مدارک انتخاب‌شده"
-
-    def reject_documents(self, request, queryset):
-        updated = queryset.update(
-            status=OrderDocumentStatus.REJECTED,
-            reviewed_by=request.user,
-            reviewed_at=timezone.now(),
-        )
-
-        self.message_user(request, f"{updated} مدرک رد شد.")
-
-    reject_documents.short_description = "رد مدارک انتخاب‌شده"
-
-
-class AdditionalDocumentUploadInline(admin.TabularInline):
-    model = AdditionalDocumentUpload
-    extra = 0
-    readonly_fields = [
-        "uploaded_by",
-        "file",
-        "customer_note",
-        "created_at",
+    ordering = [
+        "-created_at",
     ]
-
-    can_delete = False
 
 
 @admin.register(AdditionalDocumentRequest)
 class AdditionalDocumentRequestAdmin(admin.ModelAdmin):
     list_display = [
-        "id",
         "order",
-        "title",
-        "document_display",
-        "status",
+        "document_type",
         "requested_by",
-        "expires_at",
-        "upload_link",
-        "sms_sent_at",
+        "status",
         "created_at",
+        "expires_at",
     ]
 
     list_filter = [
         "status",
-        "document_type",
         "created_at",
         "expires_at",
+        "document_type",
     ]
 
     search_fields = [
         "order__id",
-        "order__customer__mobile",
-        "order__customer__first_name",
-        "order__customer__last_name",
-        "title",
+        "document_type__title",
+        "document_type__code",
+        "requested_by__username",
+        "requested_by__first_name",
+        "requested_by__last_name",
         "description",
-        "custom_document_title",
+        "admin_note",
     ]
 
     autocomplete_fields = [
         "order",
-        "requested_by",
         "document_type",
+        "requested_by",
     ]
 
     readonly_fields = [
         "token",
-        "upload_link",
         "created_at",
         "updated_at",
-        "sms_sent_at",
-    ]
-
-    inlines = [
-        AdditionalDocumentUploadInline,
     ]
 
     fieldsets = (
-        ("اطلاعات درخواست", {
-            "fields": (
-                "order",
-                "requested_by",
-                "title",
-                "description",
-                "document_type",
-                "custom_document_title",
-                "status",
-            )
-        }),
-        ("لینک و زمان‌بندی", {
-            "fields": (
-                "token",
-                "upload_link",
-                "expires_at",
-                "sms_sent_at",
-            )
-        }),
-        ("زمان‌ها", {
-            "fields": (
-                "created_at",
-                "updated_at",
-            )
-        }),
+        (
+            "اطلاعات درخواست",
+            {
+                "fields": (
+                    "order",
+                    "document_type",
+                    "requested_by",
+                    "status",
+                    "token",
+                    "expires_at",
+                )
+            },
+        ),
+        (
+            "توضیحات",
+            {
+                "fields": (
+                    "description",
+                    "admin_note",
+                )
+            },
+        ),
+        (
+            "زمان‌ها",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                )
+            },
+        ),
     )
 
-    def document_display(self, obj):
-        return obj.document_title
-
-    document_display.short_description = "مدرک"
-
-    def upload_link(self, obj):
-        if not obj.pk:
-            return "-"
-
-        url = obj.get_upload_url()
-
-        return format_html(
-            '<a href="{}" target="_blank">{}</a>',
-            url,
-            url
-        )
-
-    upload_link.short_description = "لینک آپلود"
-
+    ordering = [
+        "-created_at",
+    ]
 
 @admin.register(AdditionalDocumentUpload)
 class AdditionalDocumentUploadAdmin(admin.ModelAdmin):
     list_display = [
-        "id",
         "request",
-        "uploaded_by",
-        "file_link",
         "created_at",
     ]
 
     list_filter = [
         "created_at",
+        "request__status",
+        "request__document_type",
     ]
 
     search_fields = [
-        "request__title",
         "request__order__id",
-        "uploaded_by__mobile",
+        "request__document_type__title",
+        "request__document_type__code",
+        "note",
     ]
 
     autocomplete_fields = [
         "request",
-        "uploaded_by",
     ]
 
     readonly_fields = [
         "created_at",
         "updated_at",
-        "file_link",
     ]
 
-    def file_link(self, obj):
-        if obj.file:
-            return format_html(
-                '<a href="{}" target="_blank">مشاهده فایل</a>',
-                obj.file.url
-            )
-        return "-"
+    fieldsets = (
+        (
+            "اطلاعات آپلود",
+            {
+                "fields": (
+                    "request",
+                    "file",
+                    "note",
+                )
+            },
+        ),
+        (
+            "زمان‌ها",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                )
+            },
+        ),
+    )
 
-    file_link.short_description = "فایل"
+    ordering = [
+        "-created_at",
+    ]

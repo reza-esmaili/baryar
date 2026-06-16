@@ -43,36 +43,14 @@ def get_order_cargo_subcategories(order):
 
     return list(order.cargo_subcategories.all())
 
-
 def rule_matches_order(rule, order, destination_country=None, cargo_subcategories=None):
     """
     بررسی اینکه یک قانون با سفارش فعلی match هست یا نه.
 
     منطق:
-    - اگر یک فیلد در قانون خالی باشد، یعنی آن شرط عمومی است و همه را قبول می‌کند.
-    - اگر یک فیلد در قانون مقدار داشته باشد، باید دقیقاً با سفارش برابر باشد.
-
-    مثال:
-    قانون ۱:
-        transport_mode = air
-        destination_country = خالی
-        cargo_type = خالی
-
-        برای همه سفارش‌های هوایی match می‌شود.
-
-    قانون ۲:
-        transport_mode = air
-        destination_country = امارات
-        cargo_type = خالی
-
-        فقط برای سفارش‌های هوایی به امارات match می‌شود.
-
-    قانون ۳:
-        transport_mode = air
-        destination_country = امارات
-        cargo_type = کالای عمومی
-
-        فقط برای سفارش هوایی به امارات با کالای عمومی match می‌شود.
+    - اگر یک فیلد در قانون خالی باشد، یعنی آن شرط عمومی است.
+    - اگر یک فیلد مقدار داشته باشد، باید دقیقاً با سفارش برابر باشد.
+    - قوانین cumulative هستند؛ یعنی قانون اختصاصی‌تر قانون عمومی‌تر را حذف نمی‌کند.
     """
 
     if destination_country is None:
@@ -81,17 +59,39 @@ def rule_matches_order(rule, order, destination_country=None, cargo_subcategorie
     if cargo_subcategories is None:
         cargo_subcategories = get_order_cargo_subcategories(order)
 
-    # رویه ارسال
+    # 1. رویه ارسال
     if rule.shipping_procedure:
+        if not getattr(order, "shipping_procedure", None):
+            return False
+
         if rule.shipping_procedure != order.shipping_procedure:
             return False
 
-    # روش حمل
+    # 2. روش حمل
     if rule.transport_mode:
+        if not getattr(order, "transport_mode", None):
+            return False
+
         if rule.transport_mode != order.transport_mode:
             return False
 
-    # کشور مقصد
+    # 3. مبدا - استان
+    if getattr(rule, "origin_province_id", None):
+        if not getattr(order, "origin_province_id", None):
+            return False
+
+        if rule.origin_province_id != order.origin_province_id:
+            return False
+
+    # 4. مبدا - شهر
+    if getattr(rule, "origin_city_id", None):
+        if not getattr(order, "origin_city_id", None):
+            return False
+
+        if rule.origin_city_id != order.origin_city_id:
+            return False
+
+    # 5. مقصد - کشور
     if rule.destination_country_id:
         if not destination_country:
             return False
@@ -99,7 +99,26 @@ def rule_matches_order(rule, order, destination_country=None, cargo_subcategorie
         if rule.destination_country_id != destination_country.id:
             return False
 
-    # دسته اصلی کالا
+    # 6. مقصد - شهر
+    if getattr(rule, "destination_city_id", None):
+        if not getattr(order, "destination_port_id", None):
+            return False
+
+        if not order.destination_port or not order.destination_port.city_id:
+            return False
+
+        if rule.destination_city_id != order.destination_port.city_id:
+            return False
+
+    # 7. مقصد - پورت/فرودگاه/گمرک
+    if getattr(rule, "destination_port_id", None):
+        if not getattr(order, "destination_port_id", None):
+            return False
+
+        if rule.destination_port_id != order.destination_port_id:
+            return False
+
+    # 8. دسته اصلی کالا
     if rule.cargo_type_id:
         if not order.cargo_type_id:
             return False
@@ -107,7 +126,7 @@ def rule_matches_order(rule, order, destination_country=None, cargo_subcategorie
         if rule.cargo_type_id != order.cargo_type_id:
             return False
 
-    # زیردسته کالا
+    # 9. زیردسته کالا
     if rule.cargo_subcategory_id:
         if not cargo_subcategories:
             return False
@@ -119,24 +138,7 @@ def rule_matches_order(rule, order, destination_country=None, cargo_subcategorie
 
     return True
 
-
 def get_matching_document_rules(order):
-    """
-    گرفتن تمام قوانین مدارک منطبق با سفارش.
-
-    این تابع cumulative است.
-
-    یعنی اگر برای یک سفارش این سه قانون match شوند:
-
-    1. حمل هوایی
-    2. حمل هوایی + امارات
-    3. حمل هوایی + امارات + کالای عمومی
-
-    هر سه قانون برگردانده می‌شوند.
-
-    قانون اختصاصی‌تر، قانون عمومی‌تر را حذف نمی‌کند.
-    """
-
     destination_country = get_order_destination_country(order)
     cargo_subcategories = get_order_cargo_subcategories(order)
 
@@ -145,7 +147,11 @@ def get_matching_document_rules(order):
         document_type__is_active=True,
     ).select_related(
         "document_type",
+        "origin_province",
+        "origin_city",
         "destination_country",
+        "destination_city",
+        "destination_port",
         "cargo_type",
         "cargo_subcategory",
     )
@@ -165,7 +171,11 @@ def get_matching_document_rules(order):
         id__in=matched_rule_ids
     ).select_related(
         "document_type",
+        "origin_province",
+        "origin_city",
         "destination_country",
+        "destination_city",
+        "destination_port",
         "cargo_type",
         "cargo_subcategory",
     ).order_by(

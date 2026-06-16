@@ -303,10 +303,6 @@
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <a href="{% url 'customer:order_list' %}" class="btn-secondary">بازگشت به لیست سفارشات</a>
-
-      {% if order.status == 'draft' or order.status == 'pending' %}
-        <a href="#" class="btn-primary">ویرایش سفارش</a>
-      {% endif %}
     </div>
   </div>
 {% endblock %}

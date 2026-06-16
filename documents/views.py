@@ -8,6 +8,7 @@ from django.utils import timezone
 from orders.models import CargoRequest, OrderStatus
 from orders.models import OrderHistory
 
+from locations.models import City, DestinationCity, Port
 from .forms import (
     OrderDocumentUploadForm,
     AdditionalDocumentUploadForm,
@@ -19,6 +20,10 @@ from .models import (
     AdditionalRequestStatus,
     AdditionalDocumentUpload,
 )
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import JsonResponse
+
+
 from .services import (
     sync_order_required_documents,
     get_order_documents_status,
@@ -285,3 +290,60 @@ def additional_document_upload(request, token):
         "is_closed": False,
         "message": "",
     })
+
+
+
+def ajax_origin_cities(request):
+    province_id = request.GET.get("province_id")
+
+    if not province_id:
+        return JsonResponse([], safe=False)
+
+    cities = (
+        City.objects
+        .filter(province_id=province_id, is_active=True)
+        .order_by("name")
+        .values("id", "name")
+    )
+
+    return JsonResponse(list(cities), safe=False)
+
+
+def ajax_destination_cities(request):
+    country_id = request.GET.get("country_id")
+
+    if not country_id:
+        return JsonResponse([], safe=False)
+
+    cities = (
+        DestinationCity.objects
+        .filter(country_id=country_id, is_active=True)
+        .order_by("name")
+        .values("id", "name")
+    )
+
+    return JsonResponse(list(cities), safe=False)
+
+
+def ajax_destination_ports(request):
+    city_id = request.GET.get("city_id")
+
+    if not city_id:
+        return JsonResponse([], safe=False)
+
+    ports = (
+        Port.objects
+        .filter(city_id=city_id, is_active=True)
+        .order_by("name")
+        .values("id", "name", "code")
+    )
+
+    data = [
+        {
+            "id": port["id"],
+            "name": f'{port["name"]} - {port["code"]}' if port["code"] else port["name"],
+        }
+        for port in ports
+    ]
+
+    return JsonResponse(data, safe=False)

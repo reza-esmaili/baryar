@@ -47,10 +47,11 @@ class CargoRequestForm(forms.ModelForm):
 
     class Meta:
         model = CargoRequest
-        fields = ['origin_province', 'origin_city', 'destination_country', 'destination_city', 'transport_mode', 'destination_port', 'cargo_type', 'actual_weight']
+        fields = ['origin_province', 'origin_city', 'destination_country', 'destination_city', 'transport_mode', 'destination_port', 'cargo_type', 'actual_weight','shipping_procedure' , 'shipping_procedure']
         widgets = {
             'origin_city': forms.Select(attrs={'class': 'form-select'}),
             'destination_port': forms.Select(attrs={'class': 'form-select'}),
+            'shipping_procedure': forms.Select(attrs={'class': 'form-select'}),
             'transport_mode': forms.Select(attrs={'class': 'form-select'}),
             'cargo_type': forms.Select(attrs={'class': 'form-select'}),
             'actual_weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'مثال: 150'}),

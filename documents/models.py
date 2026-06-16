@@ -8,14 +8,16 @@ from django.core.exceptions import ValidationError
 
 from core.models import TimeStampedModel
 from rates.models import TransportMode, CargoType, CargoSubCategory
-from orders.models import ShippingProcedure
-
+from core.choices import ShippingProcedure
 
 class DocumentRequirementLevel(models.TextChoices):
     GENERAL = "general", "عمومی"
-    COUNTRY = "country", "مخصوص کشور"
-    CARGO_TYPE = "cargo_type", "مخصوص دسته کالا"
-    CARGO_SUBCATEGORY = "cargo_subcategory", "مخصوص زیردسته کالا"
+    SHIPPING_PROCEDURE = "shipping_procedure", "بر اساس رویه ارسال"
+    DESTINATION = "destination", "بر اساس مقصد"
+    ORIGIN = "origin", "بر اساس مبدا"
+    TRANSPORT_MODE = "transport_mode", "بر اساس روش حمل"
+    CARGO_TYPE = "cargo_type", "بر اساس دسته کالا"
+    CARGO_SUBCATEGORY = "cargo_subcategory", "بر اساس زیردسته کالا"
     CUSTOM = "custom", "سفارشی"
 
 
@@ -131,6 +133,23 @@ class DocumentRule(TimeStampedModel):
         blank=True,
         verbose_name="روش حمل"
     )
+    origin_province = models.ForeignKey(
+        "locations.Province",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="document_rules",
+        verbose_name="استان مبدا"
+    )
+
+    origin_city = models.ForeignKey(
+        "locations.City",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="document_rules",
+        verbose_name="شهر مبدا"
+    )
 
     destination_country = models.ForeignKey(
         "locations.Country",
@@ -139,6 +158,23 @@ class DocumentRule(TimeStampedModel):
         blank=True,
         related_name="document_rules",
         verbose_name="کشور مقصد"
+    )
+    destination_city = models.ForeignKey(
+        "locations.DestinationCity",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="document_rules",
+        verbose_name="شهر مقصد"
+    )
+
+    destination_port = models.ForeignKey(
+        "locations.Port",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="document_rules",
+        verbose_name="پورت/فرودگاه/گمرک مقصد"
     )
 
     
@@ -210,6 +246,24 @@ class DocumentRule(TimeStampedModel):
     def clean(self):
         super().clean()
 
+        if self.origin_province and self.origin_city:
+            if self.origin_city.province_id != self.origin_province_id:
+                raise ValidationError({
+                    "origin_city": "شهر مبدا انتخاب‌شده متعلق به استان مبدا نیست."
+                })
+
+        if self.destination_country and self.destination_city:
+            if self.destination_city.country_id != self.destination_country_id:
+                raise ValidationError({
+                    "destination_city": "شهر مقصد انتخاب‌شده متعلق به کشور مقصد نیست."
+                })
+
+        if self.destination_city and self.destination_port:
+            if self.destination_port.city_id != self.destination_city_id:
+                raise ValidationError({
+                    "destination_port": "پورت/فرودگاه/گمرک مقصد متعلق به شهر مقصد نیست."
+                })
+
         if self.cargo_subcategory and self.cargo_type:
             if self.cargo_subcategory.category_id != self.cargo_type_id:
                 raise ValidationError({
@@ -222,6 +276,57 @@ class DocumentRule(TimeStampedModel):
                     "cargo_type": "دسته کالا انتخاب شده با روش حمل انتخاب‌شده همخوانی ندارد."
                 })
 
+        conditional_fields = [
+            self.shipping_procedure,
+            self.transport_mode,
+            self.origin_province_id,
+            self.origin_city_id,
+            self.destination_country_id,
+            self.destination_city_id,
+            self.destination_port_id,
+            self.cargo_type_id,
+            self.cargo_subcategory_id,
+        ]
+
+        has_any_condition = any(conditional_fields)
+
+        if self.requirement_level == DocumentRequirementLevel.GENERAL and has_any_condition:
+            raise ValidationError({
+                "requirement_level": "برای قانون عمومی نباید هیچ شرطی مانند رویه ارسال، مبدا، مقصد، روش حمل یا کالا انتخاب شود."
+            })
+
+        if self.requirement_level == DocumentRequirementLevel.SHIPPING_PROCEDURE and not self.shipping_procedure:
+            raise ValidationError({
+                "shipping_procedure": "برای سطح قانون رویه ارسال، انتخاب رویه ارسال الزامی است."
+            })
+
+        if self.requirement_level == DocumentRequirementLevel.TRANSPORT_MODE and not self.transport_mode:
+            raise ValidationError({
+                "transport_mode": "برای سطح قانون روش حمل، انتخاب روش حمل الزامی است."
+            })
+
+        if self.requirement_level == DocumentRequirementLevel.ORIGIN:
+            if not self.origin_province and not self.origin_city:
+                raise ValidationError({
+                    "origin_city": "برای سطح قانون مبدا، حداقل استان یا شهر مبدا باید انتخاب شود."
+                })
+
+        if self.requirement_level == DocumentRequirementLevel.DESTINATION:
+            if not self.destination_country and not self.destination_city and not self.destination_port:
+                raise ValidationError({
+                    "destination_country": "برای سطح قانون مقصد، حداقل کشور، شهر یا پورت مقصد باید انتخاب شود."
+                })
+
+        if self.requirement_level == DocumentRequirementLevel.CARGO_TYPE and not self.cargo_type:
+            raise ValidationError({
+                "cargo_type": "برای سطح قانون دسته کالا، انتخاب دسته اصلی کالا الزامی است."
+            })
+
+        if self.requirement_level == DocumentRequirementLevel.CARGO_SUBCATEGORY and not self.cargo_subcategory:
+            raise ValidationError({
+                "cargo_subcategory": "برای سطح قانون زیردسته کالا، انتخاب زیردسته کالا الزامی است."
+            })
+            
     @property
     def specificity_score(self):
         """
@@ -234,7 +339,15 @@ class DocumentRule(TimeStampedModel):
             score += 1
         if self.transport_mode:
             score += 1
+        if self.origin_province_id:
+            score += 1
+        if self.origin_city_id:
+            score += 1
         if self.destination_country_id:
+            score += 1
+        if self.destination_city_id:
+            score += 1
+        if self.destination_port_id:
             score += 1
         if self.cargo_type_id:
             score += 1

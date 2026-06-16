@@ -3,6 +3,7 @@ from accounts.models import User
 from locations.models import Province, City, Port
 from rates.models import Rate, CargoType, CargoSubCategory, TransportMode, ContainerSize, ContainerType 
 from core.models import TimeStampedModel
+from core.choices import ShippingProcedure
 
 class OrderStatus(models.TextChoices):
     DRAFT = 'draft', 'پیش‌نویس (نیاز به تکمیل اطلاعات)'
@@ -10,9 +11,7 @@ class OrderStatus(models.TextChoices):
     ACCEPTED = 'accepted', 'تایید شده'
     REJECTED = 'rejected', 'رد شده'
     COMPLETED = 'completed', 'تکمیل شده'
-class ShippingProcedure(models.TextChoices):
-    PASSENGER = "passenger", "مسافری"
-    COMMERCIAL = "commercial", "تجاری"
+
 
 class CargoRequest(TimeStampedModel):
     """مدل اصلی درخواست/سفارش حمل کالا توسط مشتری"""

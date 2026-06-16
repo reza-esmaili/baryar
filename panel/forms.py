@@ -20,6 +20,7 @@ class RateForm(forms.ModelForm):
             "destination_port",
             "valid_until",
             "cargo_types",
+            "shipping_procedure",
         ]
         widgets = {
             "transport_mode": forms.Select(attrs={"class": "form-select"}),
@@ -30,6 +31,7 @@ class RateForm(forms.ModelForm):
             "destination_port": forms.Select(attrs={"class": "form-select"}),
             "valid_until": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "cargo_types": forms.CheckboxSelectMultiple(),
+            "shipping_procedure": forms.Select(attrs={'class': 'form-select'}),
         }
 
     def __init__(self, *args, **kwargs):

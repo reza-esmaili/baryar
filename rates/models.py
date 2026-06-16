@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from core.choices import ShippingProcedure
 
 # === انتخاب‌های سیستم ===
 
@@ -78,6 +79,13 @@ class Rate(models.Model):
         related_name='rates',
         verbose_name="شرکت فورواردر"
     )
+    shipping_procedure = models.CharField(
+        max_length=20,
+        choices=ShippingProcedure.choices,
+        default=ShippingProcedure.COMMERCIAL,
+        verbose_name="رویه ارسال"
+    )
+
     branch = models.ForeignKey(
         'forwarders.ForwarderBranch', 
         on_delete=models.CASCADE, 
