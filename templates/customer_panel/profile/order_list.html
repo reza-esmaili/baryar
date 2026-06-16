@@ -130,10 +130,10 @@
         .catch((error) => {
           console.error(error)
           tableBody.innerHTML = `
-                      <tr class="orders-empty-row">
-                        <td colspan="7">خطا در دریافت اطلاعات سفارش‌ها.</td>
-                      </tr>
-                    `
+                              <tr class="orders-empty-row">
+                                <td colspan="7">خطا در دریافت اطلاعات سفارش‌ها.</td>
+                              </tr>
+                            `
         })
         .finally(() => {
           tableBody.classList.remove('orders-table-loading')

@@ -1,0 +1,170 @@
+{% load static %}
+{% load humanize %}
+{% load jformat %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+
+    <link rel="stylesheet" href="{{ base_url }}{% static 'css/pdf_invoice.css' %}" />
+  </head>
+
+  <body>
+    <div class="invoice-box">
+      <!-- HEADER -->
+
+      <div class="header">
+        <div class="logo">
+          <img src="{{ base_url }}{% static 'images/logo.png' %}" alt="logo" />
+        </div>
+
+        <div class="company-info">
+          <h1>فاکتور رسمی خدمات حمل و نقل</h1>
+
+          <p>شماره فاکتور : INV-{{ order.id }}</p>
+
+          <p>تاریخ فاکتور :
+            {{ order.created_at|jformat:'%Y/%m/%d' }}</p>
+
+          <p>تاریخ چاپ :
+            {{ today|jformat:'%Y/%m/%d' }}</p>
+
+          <p>وضعیت :
+            {{ order.get_status_display }}</p>
+        </div>
+      </div>
+
+      <!-- SENDER INFO -->
+
+      <div class="section-title">مشخصات فرستنده</div>
+
+      <table class="info-table">
+        <tr>
+          <td class="label">نام فرستنده</td>
+          <td>{{ order.sender_name|default:'ثبت نشده' }}</td>
+
+          <td class="label">کد ملی</td>
+          <td>{{ order.sender_national_id|default:'---' }}</td>
+        </tr>
+
+        <tr>
+          <td class="label">شهر مبدا</td>
+          <td>{{ order.origin_city.name }}</td>
+
+          <td class="label">کشور مقصد</td>
+          <td>{{ order.destination_port.city.country.name }}</td>
+        </tr>
+
+        <tr>
+          <td class="label">بندر مقصد</td>
+          <td>{{ order.destination_port.name }}</td>
+
+          <td class="label">روش حمل</td>
+          <td>{{ order.get_transport_mode_display }}</td>
+        </tr>
+
+        <tr>
+          <td class="label">آدرس فرستنده</td>
+          <td colspan="3">{{ order.sender_address|default:'ثبت نشده' }}</td>
+        </tr>
+      </table>
+
+      <!-- CARGO INFO -->
+
+      <div class="section-title">مشخصات محموله</div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>نوع کالا</th>
+            <th>وزن واقعی</th>
+            <th>وزن محاسباتی</th>
+            <th>نوع بسته بندی</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>{{ order.cargo_type.name }}</td>
+
+            <td>{{ order.actual_weight }} KG</td>
+
+            <td>{{ order.chargeable_weight|default:order.actual_weight }} KG</td>
+
+            <td>
+              {% if order.container_size %}
+                {{ order.container_count }}
+                کانتینر
+                {{ order.get_container_size_display }}
+              {% else %}
+                بر اساس ابعاد ثبت شده
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      {% if order.dimensions.exists %}
+        <div class="section-title">جزئیات ابعاد بار</div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ردیف</th>
+              <th>طول</th>
+              <th>عرض</th>
+              <th>ارتفاع</th>
+              <th>تعداد</th>
+              <th>حجم</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for dim in order.dimensions.all %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+
+                <td>{{ dim.length }}</td>
+
+                <td>{{ dim.width }}</td>
+
+                <td>{{ dim.height }}</td>
+
+                <td>{{ dim.quantity }}</td>
+
+                <td>{{ dim.volume_cm3 }} cm³</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+
+      <!-- TOTAL PRICE -->
+
+      <div class="total-box">
+        <div class="total-title">مبلغ قابل پرداخت</div>
+
+        <div class="total-price">{{ order.final_price|intcomma }} ریال</div>
+      </div>
+
+      <!-- SIGNATURE -->
+
+      <div class="signature">
+        <div class="sign-box">مهر و امضای شرکت</div>
+
+        <div class="sign-box">مهر و امضای مشتری</div>
+      </div>
+
+      <!-- FOOTER -->
+
+      <div class="footer">
+        این فاکتور به صورت سیستمی صادر شده و بدون مهر و امضا نیز معتبر می‌باشد
+
+        <br />
+
+        سامانه مدیریت حمل و نقل هوشمند
+      </div>
+    </div>
+  </body>
+</html>

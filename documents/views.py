@@ -23,18 +23,31 @@ from .services import (
     sync_order_required_documents,
     get_order_documents_status,
     order_has_all_required_documents,
+    get_current_order_documents_queryset,
 )
+
 
 @login_required
 def order_documents_view(request, order_id):
 
     order = get_object_or_404(
-        CargoRequest,
+        CargoRequest.objects.select_related(
+            "customer",
+            "origin_city",
+            "destination_port",
+            "destination_port__city",
+            "destination_port__city__country",
+            "cargo_type",
+        ).prefetch_related(
+            "cargo_subcategories"
+        ),
         id=order_id,
         customer=request.user
     )
 
-    documents = order.required_documents.select_related("document_type")
+    sync_order_required_documents(order)
+
+    documents = get_current_order_documents_queryset(order)
 
     if request.method == "POST":
 
@@ -46,17 +59,15 @@ def order_documents_view(request, order_id):
                 doc.file = uploaded_file
                 doc.mark_uploaded(request.user)
 
-        # بررسی کامل بودن مدارک
-        remaining = documents.filter(
-            is_required=True,
-            status=OrderDocumentStatus.PENDING_UPLOAD
-        ).exists()
+        documents_status = get_order_documents_status(order)
 
-        if not remaining:
+        if documents_status["is_complete"]:
             order.status = OrderStatus.PENDING
-            order.save(update_fields=["status"])
+            order.save(update_fields=["status", "updated_at"])
 
         return redirect("customer:order_detail", pk=order.id)
+
+    documents_status = get_order_documents_status(order)
 
     return render(
         request,
@@ -64,15 +75,17 @@ def order_documents_view(request, order_id):
         {
             "order": order,
             "documents": documents,
+            "documents_status": documents_status,
         }
     )
+
 
 @login_required
 def order_documents_step(request, order_id):
     """
     صفحه آپلود مدارک سفارش قبل از ثبت نهایی.
 
-    کاربر باید تمام مدارک اجباری را آپلود کند.
+    کاربر باید تمام مدارک اجباری مرتبط با قوانین فعلی سفارش را آپلود کند.
     """
 
     order = get_object_or_404(
@@ -94,14 +107,11 @@ def order_documents_step(request, order_id):
         messages.warning(request, "مدارک این سفارش در این مرحله قابل ویرایش نیست.")
         return redirect("customer:order_detail", order.id)
 
+    # ساخت/همگام‌سازی مدارک بر اساس قوانین فعلی سفارش
     sync_order_required_documents(order)
 
-    documents = OrderDocument.objects.select_related(
-        "document_type",
-        "source_rule",
-    ).filter(
-        order=order
-    ).order_by("document_type__title")
+    # فقط مدارکی که طبق قوانین فعلی لازم هستند نمایش داده شوند
+    documents = get_current_order_documents_queryset(order)
 
     documents_status = get_order_documents_status(order)
 

@@ -5,10 +5,13 @@ from django.http import JsonResponse
 from .forms import CargoRequestForm, CargoDimensionFormSet, OrderCompletionForm
 from .services import calculate_and_match_rates
 from .models import CargoRequest, OrderStatus, OrderHistory
-
+from django.utils import timezone
 from rates.models import CargoType, Rate, CargoSubCategory
 from documents.services import sync_order_required_documents
-
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
 
 @login_required
 def create_cargo_request(request):
@@ -267,3 +270,23 @@ def load_cargo_subcategories(request):
         return JsonResponse(list(subs), safe=False)
 
     return JsonResponse([], safe=False)
+
+
+def generate_order_invoice_pdf(request, order_id):
+    order = get_object_or_404(CargoRequest, id=order_id)
+    
+    context = {
+        'order': order,
+        'today': timezone.now(),
+        'base_url': request.build_absolute_uri('/')[:-1] # برای پیدا کردن آدرس کامل فایل‌های استاتیک
+    }
+
+    html_string = render_to_string('orders/pdf/invoice_template.html', context)
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Invoice-{order.id}.pdf"'
+
+    # اضافه کردن آدرس اصلی سایت برای بارگذاری صحیح استایل‌ها
+    HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf(response)
+    
+    return response

@@ -17,4 +17,6 @@ urlpatterns = [
     # AJAX loaders
     path("ajax/cargo-types/", views.load_cargo_types, name="ajax_load_cargo_types"),
     path("ajax/cargo-subcategories/", views.load_cargo_subcategories, name="ajax_load_cargo_subcategories"),
+    path('invoice/<int:order_id>/download/', views.generate_order_invoice_pdf, name='generate_invoice'),
+
 ]

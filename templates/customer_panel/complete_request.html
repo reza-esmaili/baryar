@@ -302,12 +302,7 @@ STEP 5
 
 <div class="doc-input">
 
-<input
-type="file"
-name="doc_{{ doc.id }}"
-class="form-control"
-{% if doc.is_required and not doc.file %}required{% endif %}
->
+<input type="file"name="doc_{{ doc.id }}"class="form-control"{% if doc.is_required and not doc.file %}required{% endif %}>
 
 </div>
 
