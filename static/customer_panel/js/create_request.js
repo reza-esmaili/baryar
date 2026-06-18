@@ -294,12 +294,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     ratesTbody.innerHTML = '';
                     if (data.rates.length === 0) {
-                        ratesTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">هیچ نرخی یافت نشد.</td></tr>';
+                        ratesTbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">هیچ نرخی یافت نشد.</td></tr>';
                     } else {
                         data.rates.forEach(rate => {
+
                             const unitPriceFmt = new Intl.NumberFormat('fa-IR').format(rate.unit_price) + ' ریال';
                             const totalPriceFmt = new Intl.NumberFormat('fa-IR').format(rate.total_price) + ' ریال';
-                            
+
+                            let packagingCell = '';
+                            let packagingColumn = '';
+
+                            if (rate.needs_packaging) {
+
+                                if (rate.packaging_charge_type === "free") {
+                                    packagingCell = '<span class="text-success">رایگان</span>';
+
+                                } else if (rate.packaging_charge_type === "not_available") {
+                                    packagingCell = '<span class="text-danger">ارائه نمی‌شود</span>';
+
+                                } else {
+                                    packagingCell = new Intl.NumberFormat('fa-IR').format(rate.packaging_price) + ' ریال';
+                                }
+
+                                packagingColumn = `<td>${packagingCell}</td>`;
+                            }
+
+                            let vatCell = '';
+
+                            if (rate.add_vat) {
+                                vatCell = new Intl.NumberFormat('fa-IR').format(rate.vat_amount) + ' ریال';
+                            }
+
                             ratesTbody.innerHTML += `
                                 <tr>
 
@@ -309,6 +334,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                 <td class="price-unit">
                                 ${unitPriceFmt}
+                                </td>
+
+                                ${packagingColumn}
+
+                                <td class="price-vat">
+                                ${vatCell}
                                 </td>
 
                                 <td class="price-total">
@@ -326,9 +357,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </td>
 
                                 </tr>
-                                `;
-
+                            `;
                         });
+
                     }
                     // اسکرول نرم به بخش نتایج
                     resultsSection.scrollIntoView({ behavior: 'smooth' });
@@ -336,6 +367,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('فرم دارای خطا است. لطفاً فیلدهای اجباری را بررسی کنید.');
                     console.log(data.errors);
                 }
+                const packagingHeader = document.getElementById('packaging-header');
+
+                if (data.rates.length > 0 && data.rates[0].needs_packaging) {
+                    packagingHeader.style.display = '';
+                } else {
+                    packagingHeader.style.display = 'none';
+                }
+
             })
             .catch(err => {
                 submitBtn.disabled = false;
@@ -357,9 +396,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // پر کردن فیلدهای مخفی فرم
                 document.getElementById('selected_rate_id').value = rateId;
-                document.getElementById('hidden_chargeable_weight').value = cw;
-                document.getElementById('hidden_final_price').value = price;
-                
+                // این دو خط فعلاً حذف شوند چون در HTML وجود ندارند
+                // document.getElementById('hidden_chargeable_weight').value = cw;
+                // document.getElementById('hidden_final_price').value = price;
+                        
                 // تغییر آدرس فرم به مسیر ثبت سفارش (view جدید) و ارسال فرم
                 cargoForm.action = '/orders/request/submit/';
                 cargoForm.submit(); 

@@ -2,32 +2,6 @@ from django.db import models
 from core.models import TimeStampedModel
 
 
-class Province(TimeStampedModel):
-    name = models.CharField(max_length=100, unique=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "استان"
-        verbose_name_plural = "استان‌ها"
-
-
-class City(TimeStampedModel):
-    province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name="cities")
-    name = models.CharField(max_length=100)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.name} - {self.province.name}"
-
-    class Meta:
-        unique_together = ("province", "name")
-        verbose_name = "شهر"
-        verbose_name_plural = "شهرها"
-
-
 class Country(TimeStampedModel):
     name = models.CharField(max_length=100, unique=True)
     code = models.CharField(max_length=3, unique=True)  # ISO 3166-1 alpha-3
@@ -39,6 +13,47 @@ class Country(TimeStampedModel):
     class Meta:
         verbose_name = "کشور"
         verbose_name_plural = "کشورها"
+
+
+class Province(TimeStampedModel):
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.PROTECT,
+        related_name="provinces",
+        verbose_name="کشور",
+        
+    )
+    name = models.CharField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        if self.country:
+            return f"{self.name} - {self.country.name}"
+        return self.name
+
+    class Meta:
+        unique_together = ("country", "name")
+        verbose_name = "استان"
+        verbose_name_plural = "استان‌ها"
+
+
+class City(TimeStampedModel):
+    province = models.ForeignKey(Province, on_delete=models.PROTECT, related_name="cities")
+    name = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+
+    @property
+    def country(self):
+        return self.province.country
+
+    def __str__(self):
+        return f"{self.name} - {self.province.name}"
+
+    class Meta:
+        unique_together = ("province", "name")
+        verbose_name = "شهر"
+        verbose_name_plural = "شهرها"
+
 
 
 class DestinationCity(TimeStampedModel):

@@ -126,6 +126,35 @@ STEP 1
 </div>
 
 </div>
+{% if doorstep_option %}
+  <div class="panel-card mt-4">
+    <div class="panel-card__header">
+      <h2>خدمات بسته‌بندی و تحویل در محل</h2>
+    </div>
+
+    <div class="form-group">
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" name="needs_doorstep_packaging" id="needs_doorstep_packaging">
+        <span>
+          نیاز به بسته‌بندی و تحویل در محل دارم
+        </span>
+      </label>
+
+      <div class="mt-2">
+        <strong>
+          هزینه:
+          {{ doorstep_option.label }}
+        </strong>
+
+        {% if doorstep_option.hint %}
+          <small style="color: #6c757d; font-size: 12px; margin-right: 8px;">
+            {{ doorstep_option.hint }}
+          </small>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endif %}
 
 </section>
 

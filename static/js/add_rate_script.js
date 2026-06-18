@@ -535,5 +535,84 @@ document.addEventListener('DOMContentLoaded', function() {
             loadCargoTypes();
         }
     }
+    // ===============================
+    // کنترل نمایش هزینه‌های جانبی
+    // ===============================
+
+    function setupChargeToggle(selectName, priceName, wrapperId) {
+
+        const typeSelect =
+            document.querySelector(`select[name="${selectName}"]`) ||
+            document.getElementById(`id_${selectName}`);
+
+        const priceInput =
+            document.querySelector(`input[name="${priceName}"]`) ||
+            document.getElementById(`id_${priceName}`);
+
+        let wrapper = document.getElementById(wrapperId);
+
+        // اگر wrapper با id مشخص پیدا نشد، نزدیک‌ترین والد فیلد مبلغ را پیدا کن
+        if (!wrapper && priceInput) {
+            wrapper =
+                priceInput.closest('.form-group') ||
+                priceInput.closest('.mb-3') ||
+                priceInput.closest('.col-md-6') ||
+                priceInput.closest('.col-md-4') ||
+                priceInput.closest('.col') ||
+                priceInput.parentElement;
+        }
+
+        if (!typeSelect || !priceInput || !wrapper) return;
+
+        function updateField() {
+
+            const value = (typeSelect.value || '').toLowerCase();
+
+            if (value === 'free' || value === 'not_available') {
+
+                // مخفی کردن کامل فیلد مبلغ
+                wrapper.style.display = 'none';
+
+                // مقدار باید صفر شود تا validation سمت سرور هم پاس شود
+                priceInput.value = 0;
+
+                // حذف required احتمالی
+                priceInput.required = false;
+
+                // اگر متن معادل تومان وجود دارد، پاک شود
+                const tomanDisplay = wrapper.querySelector('.toman-display');
+                if (tomanDisplay) {
+                    tomanDisplay.innerText = '';
+                }
+
+            } else {
+
+                // نمایش فیلد مبلغ برای fixed و per_kg
+                wrapper.style.display = '';
+
+            }
+        }
+
+        // اجرای اولیه هنگام لود صفحه
+        updateField();
+
+        // اجرای مجدد هنگام تغییر نوع هزینه
+        typeSelect.addEventListener('change', updateField);
+    }
+
+
+    // بسته‌بندی
+    setupChargeToggle(
+        'packaging_charge_type',
+        'packaging_price',
+        'packaging_price_wrapper'
+    );
+
+    // تحویل و بسته‌بندی در محل
+    setupChargeToggle(
+        'doorstep_packaging_charge_type',
+        'doorstep_packaging_price',
+        'doorstep_packaging_price_wrapper'
+    );
 
 });

@@ -1,10 +1,10 @@
 from django import forms
 from django.db import models, transaction
 from django.forms import inlineformset_factory
+from locations.models import Country, Province, City
 
 from accounts.models import CompanyType, User
 from forwarders.models import ForwarderBranch, ForwarderCompany, ForwarderStaff
-from locations.models import City
 from rates.models import CargoType, Rate, RateTier
 
 
@@ -13,25 +13,47 @@ class RateForm(forms.ModelForm):
         model = Rate
         fields = [
             "transport_mode",
+
+            "origin_country",
             "origin_province",
             "origin_city",
+
             "destination_country",
             "destination_city",
             "destination_port",
+
             "valid_until",
             "cargo_types",
             "shipping_procedure",
+
+            "packaging_charge_type",
+            "packaging_price",
+            "doorstep_packaging_charge_type",
+            "doorstep_packaging_price",
+            "add_vat",
         ]
         widgets = {
             "transport_mode": forms.Select(attrs={"class": "form-select"}),
+
+            "origin_country": forms.Select(attrs={"class": "form-select"}),
             "origin_province": forms.Select(attrs={"class": "form-select"}),
             "origin_city": forms.Select(attrs={"class": "form-select"}),
+
             "destination_country": forms.Select(attrs={"class": "form-select"}),
             "destination_city": forms.Select(attrs={"class": "form-select"}),
             "destination_port": forms.Select(attrs={"class": "form-select"}),
+
             "valid_until": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "cargo_types": forms.CheckboxSelectMultiple(),
             "shipping_procedure": forms.Select(attrs={'class': 'form-select'}),
+
+            "packaging_charge_type": forms.Select(attrs={"class": "form-select"}),
+            "packaging_price": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
+
+            "doorstep_packaging_charge_type": forms.Select(attrs={"class": "form-select"}),
+            "doorstep_packaging_price": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
+
+            "add_vat": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -42,6 +64,38 @@ class RateForm(forms.ModelForm):
             (cargo_type.id, cargo_type.name)
             for cargo_type in CargoType.objects.all()
         ]
+
+        iran = Country.objects.filter(code="IRN", is_active=True).first()
+
+        if iran:
+            self.fields["origin_country"].queryset = Country.objects.filter(id=iran.id)
+            self.fields["origin_country"].initial = iran.id
+
+            self.fields["origin_province"].queryset = Province.objects.filter(
+                country=iran,
+                is_active=True
+            ).order_by("name")
+        else:
+            self.fields["origin_country"].queryset = Country.objects.none()
+            self.fields["origin_province"].queryset = Province.objects.none()
+
+        self.fields["origin_city"].queryset = City.objects.none()
+
+        if "origin_province" in self.data:
+            try:
+                province_id = int(self.data.get("origin_province"))
+                self.fields["origin_city"].queryset = City.objects.filter(
+                    province_id=province_id,
+                    is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.origin_province:
+            self.fields["origin_city"].queryset = City.objects.filter(
+                province=self.instance.origin_province,
+                is_active=True
+            ).order_by("name")
+
 
 
 class RateTierForm(forms.ModelForm):

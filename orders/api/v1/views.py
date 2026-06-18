@@ -15,7 +15,7 @@ class CalculateRatesAPIView(generics.GenericAPIView):
             dimensions = validated_data.get('dimensions', [])
             
             # فراخوانی سرویس محاسبه
-            result = calculate_and_match_rates(validated_data, dimensions)
+            result = calculate_and_match_rates(validated_data, dimensions) 
             
             return Response({"message": "نرخ محاسبه شد", "data": result}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

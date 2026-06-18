@@ -791,3 +791,120 @@
     }
 
 }
+/* کانتینر اصلی کارت بسته‌بندی */
+.packaging-card-container {
+    width: 100%;
+}
+
+.packaging-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    background: #ffffff;
+    border: 2px solid var(--cr-border);
+    border-radius: var(--cr-radius-md);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    user-select: none;
+    margin-top: 30px;
+}
+
+.packaging-card:hover {
+    border-color: var(--cr-primary);
+    background: #f8fbff;
+    transform: translateY(-2px);
+}
+
+/* استایل متون داخل کارت */
+.packaging-card__content {
+    flex: 1;
+    padding-left: 20px;
+}
+
+.packaging-card__title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--cr-text);
+    margin-bottom: 6px;
+    display: block;
+}
+
+.packaging-card__description {
+    font-size: 13.5px;
+    color: var(--cr-text-muted);
+    line-height: 1.6;
+}
+
+/* طراحی اختصاصی چک‌باکس تعاملی */
+.custom-checkbox {
+    position: relative;
+    width: 32px;
+    height: 32px;
+}
+
+/* مخفی کردن چک‌باکس پیش‌فرض سیستم */
+.custom-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/* لایه ظاهری چک‌باکس (مربع خالی) */
+.checkbox-visual {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 32px;
+    width: 32px;
+    background-color: #fff;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+/* استایل حالت فعال (Checked) */
+.packaging-card input[type="checkbox"]:checked ~ .checkbox-visual {
+    background-color: var(--cr-primary);
+    border-color: var(--cr-primary);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.packaging-card:has(input:checked) {
+    border-color: var(--cr-primary);
+    background: #eff6ff;
+}
+
+/* ایجاد تیک (Checkmark) داخل باکس */
+.checkbox-visual:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 10px;
+    top: 5px;
+    width: 8px;
+    height: 14px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+
+.packaging-card input[type="checkbox"]:checked ~ .checkbox-visual:after {
+    display: block;
+}
+
+/* بهینه‌سازی برای موبایل */
+@media (max-width: 576px) {
+    .packaging-card {
+        padding: 16px;
+    }
+    .packaging-card__title {
+        font-size: 15px;
+    }
+    .packaging-card__description {
+        font-size: 12px;
+    }
+}

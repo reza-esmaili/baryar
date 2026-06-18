@@ -73,4 +73,73 @@ body {
     transform: scale(1.1); /* کمی بزرگ شدن در هاور */
 }
 
- 
+ /* استایل حرفه‌ای‌تر چک‌باکس مالیات */
+.form-switch .form-check-input {
+    width: 3.5em;
+    height: 1.75em;
+    margin-top: 0;
+    cursor: pointer;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #0dcaf0; /* رنگ آبی متناسب با سایت شما */
+    border-color: #0dcaf0;
+}
+
+/* بهبود خوانایی لیبل‌ها در هزینه‌های جانبی */
+.form-label.fw-semibold {
+    font-size: 0.9rem;
+}
+/* استایل اصلاحی برای سوییچ مالیات */
+.form-check-input {
+    width: 3em !important; /* کمی پهن‌تر */
+    height: 1.5em !important;
+    margin-left: 10px !important; /* فاصله از متن */
+}
+/* کانتینر اصلی که توسط جاوااسکریپت پر می‌شود */
+#cargo-types-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    direction: rtl; /* اطمینان از راست‌چین بودن */
+    padding: 10px;
+    border: 1px solid #e0e0e0 !important;
+    background-color: #fcfcfc;
+}
+
+/* استایل هر آیتم کالا (ترکیب چک‌باکس و متن) */
+#cargo-types-container > div, 
+#cargo-types-container .form-check {
+    display: flex;
+    flex-direction: row-reverse; /* انتقال چک‌باکس به سمت راست متن */
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 5px;
+    min-width: 180px; /* برای نظم‌دهی ستونی */
+}
+
+/* کوچک‌تر کردن و استایل دادن به خودِ چک‌باکس */
+#cargo-types-container input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin-left: 10px; /* فاصله چک‌باکس از متن سمت چپش */
+    margin-right: 0;
+    cursor: pointer;
+    border: 1.5px solid #0dcaf0;
+    accent-color: #0dcaf0; /* رنگ تیکِ داخل باکس */
+}
+
+/* استایل متن (لیبل) کالا */
+#cargo-types-container label {
+    font-size: 0.85rem;
+    color: #444;
+    cursor: pointer;
+    white-space: nowrap;
+    margin-bottom: 0;
+}
+
+/* افکت هاور روی کل ردیف کالا */
+#cargo-types-container div:hover label {
+    color: #000;
+    font-weight: bold;
+}

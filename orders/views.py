@@ -3,15 +3,16 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from .forms import CargoRequestForm, CargoDimensionFormSet, OrderCompletionForm
-from .services import calculate_and_match_rates
+from .services import calculate_and_match_rates , calculate_extra_charge, money
 from .models import CargoRequest, OrderStatus, OrderHistory
 from django.utils import timezone
-from rates.models import CargoType, Rate, CargoSubCategory
-from documents.services import sync_order_required_documents
+from rates.models import CargoType, Rate, CargoSubCategory , ExtraChargeType
+from documents.services import sync_order_required_documents ,OrderDocument
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
+from decimal import Decimal
 
 @login_required
 def create_cargo_request(request):
@@ -97,8 +98,6 @@ def submit_order(request):
         formset = CargoDimensionFormSet(request.POST)
 
         selected_rate_id = request.POST.get('selected_rate_id')
-        chargeable_weight = request.POST.get('chargeable_weight')
-        final_price = request.POST.get('final_price')
 
         if form.is_valid() and selected_rate_id:
 
@@ -106,11 +105,33 @@ def submit_order(request):
 
             if is_fcl or formset.is_valid():
 
+                # داده‌های ابعاد برای سرویس محاسبه
+                dimensions_data = [] if is_fcl else formset.cleaned_data
+
+                # محاسبه مجدد نرخ‌ها در سرور (برای جلوگیری از دستکاری قیمت)
+                match_data = calculate_and_match_rates(
+                    form.cleaned_data,
+                    dimensions_data
+                )
+
+                selected_result = None
+
+                for item in match_data["results"]:
+                    if str(item["rate_id"]) == str(selected_rate_id):
+                        selected_result = item
+                        break
+
+                if not selected_result:
+                    messages.error(request, "نرخ انتخاب شده معتبر نیست یا منقضی شده است.")
+                    return redirect('orders:create_request')
+
                 cargo_request = form.save(commit=False)
                 cargo_request.customer = request.user
 
-                # نرخ انتخاب شده
+                # دریافت شیء نرخ
                 rate = get_object_or_404(Rate, id=selected_rate_id)
+
+                # اعتبارسنجی امنیتی
                 if rate.transport_mode != cargo_request.transport_mode:
                     messages.error(request, "نرخ انتخاب‌شده با روش حمل سفارش مطابقت ندارد.")
                     return redirect('orders:create_request')
@@ -118,12 +139,25 @@ def submit_order(request):
                 if rate.shipping_procedure != cargo_request.shipping_procedure:
                     messages.error(request, "نرخ انتخاب‌شده با رویه ارسال سفارش مطابقت ندارد.")
                     return redirect('orders:create_request')
+
                 cargo_request.selected_rate = rate
+                cargo_request.needs_packaging = form.cleaned_data.get('needs_packaging', False)
+                cargo_request.needs_doorstep_packaging = False
 
-                cargo_request.chargeable_weight = chargeable_weight
-                cargo_request.final_price = final_price
 
-                # سفارش هنوز نهایی نشده
+                # ذخیره وزن محاسبه شده
+                cargo_request.chargeable_weight = match_data["chargeable_weight"]
+
+                # ذخیره breakdown قیمت
+                cargo_request.base_shipping_price = selected_result["base_shipping_price"]
+                cargo_request.packaging_price = selected_result["packaging_price"]
+                cargo_request.doorstep_packaging_price = selected_result["doorstep_packaging_price"]
+                cargo_request.vat_amount = selected_result["vat_amount"]
+                cargo_request.price_subtotal = selected_result["subtotal"]
+
+                # قیمت نهایی
+                cargo_request.final_price = selected_result["total_price"]
+
                 cargo_request.status = OrderStatus.DRAFT
 
                 # اطلاعات کانتینر در حالت FCL
@@ -142,14 +176,13 @@ def submit_order(request):
                         dim.cargo_request = cargo_request
                         dim.save()
 
-                # ثبت در تاریخچه سفارش
+                # ثبت تاریخچه
                 OrderHistory.objects.create(
                     order=cargo_request,
                     changed_by=request.user,
                     note="نرخ انتخاب شد و سفارش به عنوان پیش‌نویس ثبت گردید."
                 )
 
-                # هدایت به مرحله تکمیل اطلاعات سفارش
                 return redirect(
                     'orders:complete_order_details',
                     order_id=cargo_request.id
@@ -164,9 +197,36 @@ def complete_order_details(request, order_id):
         id=order_id,
         customer=request.user,
     )
+    selected_rate = cargo_request.selected_rate
 
+    doorstep_option = None
 
-    from documents.models import OrderDocument
+    if selected_rate and selected_rate.doorstep_packaging_charge_type != ExtraChargeType.NOT_AVAILABLE:
+        doorstep_amount = calculate_extra_charge(
+            selected_rate.doorstep_packaging_charge_type,
+            selected_rate.doorstep_packaging_price,
+            cargo_request.chargeable_weight
+        )
+
+        if selected_rate.doorstep_packaging_charge_type == ExtraChargeType.FREE:
+            doorstep_label = "رایگان"
+        elif selected_rate.doorstep_packaging_charge_type == ExtraChargeType.FIXED:
+            doorstep_label = f"{money(doorstep_amount):,} ریال"
+            doorstep_hint = "هزینه ثابت"
+        elif selected_rate.doorstep_packaging_charge_type == ExtraChargeType.PER_KG:
+            doorstep_label = f"{money(doorstep_amount):,} ریال"
+            doorstep_hint = f"بر اساس وزن محاسبه‌شده: {cargo_request.chargeable_weight} کیلوگرم"
+        else:
+            doorstep_label = ""
+            doorstep_hint = ""
+
+        doorstep_option = {
+            "amount": doorstep_amount,
+            "label": doorstep_label,
+            "hint": doorstep_hint if selected_rate.doorstep_packaging_charge_type != ExtraChargeType.FREE else "",
+            "charge_type": selected_rate.doorstep_packaging_charge_type,
+        }
+
 
     # اطمینان از ساخت مدارک موردنیاز
     sync_order_required_documents(cargo_request)
@@ -185,11 +245,50 @@ def complete_order_details(request, order_id):
             order.sender_city = order.origin_city
             order.sender_province = order.origin_city.province
 
-            # تغییر وضعیت سفارش
-            order.status = OrderStatus.PENDING
+            if form.is_valid():
+                order = form.save(commit=False)
 
-            order.save()
-            form.save_m2m()
+                order.sender_city = order.origin_city
+                order.sender_province = order.origin_city.province
+
+                wants_doorstep = request.POST.get("needs_doorstep_packaging") == "on"
+
+                order.needs_doorstep_packaging = False
+                order.doorstep_packaging_price = 0
+
+                if wants_doorstep and order.selected_rate:
+                    rate = order.selected_rate
+
+                    if rate.doorstep_packaging_charge_type != ExtraChargeType.NOT_AVAILABLE:
+                        doorstep_amount = calculate_extra_charge(
+                            rate.doorstep_packaging_charge_type,
+                            rate.doorstep_packaging_price,
+                            order.chargeable_weight
+                        )
+
+                        order.needs_doorstep_packaging = True
+                        order.doorstep_packaging_price = money(doorstep_amount)
+
+                        base_shipping_price = Decimal(str(order.base_shipping_price or 0))
+                        packaging_price = Decimal(str(order.packaging_price or 0))
+                        doorstep_price = Decimal(str(order.doorstep_packaging_price or 0))
+
+                        subtotal = base_shipping_price + packaging_price + doorstep_price
+
+                        if rate.add_vat:
+                            vat_amount = subtotal * Decimal("0.10")
+                        else:
+                            vat_amount = Decimal("0.00")
+
+                        order.price_subtotal = money(subtotal)
+                        order.vat_amount = money(vat_amount)
+                        order.final_price = money(subtotal + vat_amount)
+
+                order.status = OrderStatus.PENDING
+
+                order.save()
+                form.save_m2m()
+
 
             # sync دوباره مدارک
             sync_order_required_documents(order)
@@ -234,7 +333,8 @@ def complete_order_details(request, order_id):
         {
             "form": form,
             "cargo_request": cargo_request,
-            "documents": documents
+            "documents": documents,
+            "doorstep_option": doorstep_option,
         }
     )
 

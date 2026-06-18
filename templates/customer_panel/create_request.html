@@ -78,8 +78,6 @@
       {% csrf_token %}
 
       <input type="hidden" name="selected_rate_id" id="selected_rate_id" />
-      <input type="hidden" name="chargeable_weight" id="hidden_chargeable_weight" />
-      <input type="hidden" name="final_price" id="hidden_final_price" />
 
       <div class="cargo-layout">
         <div class="cargo-main">
@@ -90,19 +88,34 @@
                 <h2>اطلاعات مبدا</h2>
               </div>
 
-              <div class="form-grid grid-2">
+              <div class="form-grid grid-4">
                 <div class="form-group">
-                  <label>{{ form.origin_province.label }}</label>
+                  <label>
+                    کشور مبدا
+                    {{ form.origin_country.label }}
+                  </label>
+                  {{ form.origin_country }}
+                </div>
+
+                <div class="form-group">
+                  <label>
+                    استان مبدا
+                    {{ form.origin_province.label }}
+                  </label>
                   {{ form.origin_province }}
                 </div>
 
                 <div class="form-group">
-                  <label>{{ form.origin_city.label }}</label>
+                  <label>
+                    شهر مبدا
+                    {{ form.origin_city.label }}
+                  </label>
                   {{ form.origin_city }}
                 </div>
+
                 <div class="form-group">
-                   <label class="form-label">رویه ارسال</label>
-                    {{ form.shipping_procedure }}
+                  <label class="form-label">رویه ارسال</label>
+                  {{ form.shipping_procedure }}
                 </div>
               </div>
             </section>
@@ -137,6 +150,35 @@
                   <label>{{ form.cargo_type.label }}</label>
                   {{ form.cargo_type }}
                 </div>
+              </div>
+              <div class="packaging-card-container mt-4">
+                <label class="packaging-card" for="{{ form.needs_packaging.id_for_label }}">
+                  <div class="packaging-card__content">
+                    <div class="packaging-card__title">نیاز به بسته‌بندی دارم</div>
+                    <div class="packaging-card__description">در صورت انتخاب، هزینه بسته‌بندی اعلام‌شده توسط فورواردر در محاسبه قیمت نهایی لحاظ میشود | با انتخاب این گزینه فورواردر هایی که بسته بندی ارائه نمیدهند نمایش داده نمیشود .</div>
+                  </div>
+                  <div class="packaging-card__action">
+                    <div class="custom-checkbox">
+                      {{ form.needs_packaging }}
+                      <span class="checkbox-visual"></span>
+                    </div>
+                  </div>
+                </label>
+              </div>
+              <!-- باکس دوم (حمل و بسته‌بندی در محل) -->
+              <div class="packaging-card-container mt-2">
+                <label class="packaging-card" for="{{ form.needs_doorstep_packaging.id_for_label }}">
+                  <div class="packaging-card__content">
+                    <div class="packaging-card__title">حمل و بسته‌بندی در محل (Door-to-Door)</div>
+                    <div class="packaging-card__description">فورواردر جهت دریافت بار و بسته‌بندی به آدرس فرستنده مراجعه می‌کند.</div>
+                  </div>
+                  <div class="packaging-card__action">
+                    <div class="custom-checkbox">
+                      {{ form.needs_doorstep_packaging }}
+                      <span class="checkbox-visual"></span>
+                    </div>
+                  </div>
+                </label>
               </div>
             </section>
 
@@ -207,7 +249,7 @@
                         {% for hidden in inline_form.hidden_fields %}
                           {{ hidden }}
                         {% endfor %}
-
+                        
                         <div class="form-group">
                           <button type="button" class="delete-row-btn">حذف</button>
                         </div>
@@ -256,11 +298,12 @@
                     <tr>
                       <th>فورواردر</th>
                       <th>قیمت واحد</th>
+                      <th id="packaging-header" style="display:none;">هزینه بسته‌بندی</th>
+                      <th>ارزش افزوده</th>
                       <th>قیمت کل</th>
                       <th>عملیات</th>
                     </tr>
                   </thead>
-
                   <tbody id="rates-tbody"></tbody>
                 </table>
               </div>
@@ -319,7 +362,7 @@
       let valid = true
       let firstInvalid = null
     
-      const requiredFields = [document.querySelector('[name="origin_province"]'), document.querySelector('[name="origin_city"]'), document.querySelector('[name="destination_country"]'), document.querySelector('[name="destination_city"]'), document.querySelector('[name="transport_mode"]'), document.querySelector('[name="destination_port"]'), document.querySelector('[name="cargo_type"]')]
+      const requiredFields = [document.querySelector('[name="origin_country"]'), document.querySelector('[name="origin_province"]'), document.querySelector('[name="origin_city"]'), document.querySelector('[name="destination_country"]'), document.querySelector('[name="destination_city"]'), document.querySelector('[name="transport_mode"]'), document.querySelector('[name="destination_port"]'), document.querySelector('[name="cargo_type"]')]
     
       requiredFields.forEach((field) => {
         if (!field || field.disabled) return
